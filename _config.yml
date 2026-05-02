@@ -84,9 +84,13 @@ compress_html:
     envs: [development]
 
 exclude:
+  - .direnv
+  - .envrc
   - "*.gem"
   - "*.gemspec"
   - docs
+  - flake.lock
+  - flake.nix
   - tools
   - README.md
   - LICENSE
