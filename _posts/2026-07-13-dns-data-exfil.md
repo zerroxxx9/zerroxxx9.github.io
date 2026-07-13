@@ -9,7 +9,7 @@ tags: [security, dns]
 
 # Data Exfiltration by Abusing DNS
 
-### This was a BreachLab Machine created by @ato
+### This was BreachLab's [Phantom The Heist](https://breachlab.org/)
 
 DNS is easy to overlook during a compromise. It is usually allowed out of a network, it is noisy by nature, and many environments focus harder on HTTP, SSH, or obvious file transfer tools. That makes it a useful channel for moving small amounts of data when a host can resolve external names.
 
