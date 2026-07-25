@@ -23,6 +23,7 @@
           libyaml
           zlib
           git
+          hexo-cli
         ];
       };
     });
