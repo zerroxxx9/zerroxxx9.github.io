@@ -101,4 +101,6 @@ theme: freemind.bithack
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
-  type: ''
+  type: git
+  repo: git@github.com:zerroxxx9/zerroxxx9.github.io.git
+  branch: main
