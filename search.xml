@@ -210,33 +210,6 @@
     
     
     <entry>
-      <title>Welcome to Hack The Box Notes</title>
-      <link href="/2026/05/01/2026-05-01-welcome-hackthebox/"/>
-      <url>/2026/05/01/2026-05-01-welcome-hackthebox/</url>
-      
-        <content type="html"><![CDATA[<p>This category is for my <strong>Hack The Box</strong> notes, machine writeups, and training progress.</p><p>Future posts here can include box walkthroughs, enumeration notes, and lessons learned.</p>]]></content>
-      
-      
-      <categories>
-          
-          <category> hackthebox </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
-            <tag> hackthebox </tag>
-            
-            <tag> labs </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>Welcome to PortSwigger Notes</title>
       <link href="/2026/05/01/2026-05-01-welcome-portswigger/"/>
       <url>/2026/05/01/2026-05-01-welcome-portswigger/</url>
@@ -283,6 +256,33 @@
             <tag> tryhackme </tag>
             
             <tag> walkthrough </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Welcome to Hack The Box Notes</title>
+      <link href="/2026/05/01/2026-05-01-welcome-hackthebox/"/>
+      <url>/2026/05/01/2026-05-01-welcome-hackthebox/</url>
+      
+        <content type="html"><![CDATA[<p>This category is for my <strong>Hack The Box</strong> notes, machine writeups, and training progress.</p><p>Future posts here can include box walkthroughs, enumeration notes, and lessons learned.</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> hackthebox </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> hackthebox </tag>
+            
+            <tag> labs </tag>
             
         </tags>
       
