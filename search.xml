@@ -4,6 +4,35 @@
   
     
     <entry>
+      <title>RedTeam guide for nmap opsec</title>
+      <link href="/2026/08/12/2026-08-12-nmap-opsec/"/>
+      <url>/2026/08/12/2026-08-12-nmap-opsec/</url>
+      
+        <content type="html"><![CDATA[<p>Nmap is loud by default. Every technique below exists to reduce the signal you generate - in volume, in pattern, and in attribution - while still getting the recon you need. This post walks through the opsec stack from “don’t scan at all if you don’t have to” down to packet-level fingerprint evasion.</p><hr><h2 id="1-Minimize-Active-Scanning"><a href="#1-Minimize-Active-Scanning" class="headerlink" title="1. Minimize Active Scanning"></a>1. Minimize Active Scanning</h2><p>The best scan is the one you don’t run.</p><ul><li><strong>Passive recon first</strong> - pull as much as possible before touching the target:<ul><li>Shodan, Censys - pre-indexed port&#x2F;service data</li><li>crt.sh - certificate transparency logs (subdomains, infra hints)</li><li>DNSDumpster - historical DNS records</li><li>BGP.he.net - ASN&#x2F;netblock mapping</li></ul></li><li><strong>Resolve scope without noise</strong><ul><li><code>nslookup domain.com</code> - only scan the resolved target IP, not the whole domain surface</li><li>Use a non-default, non-org DNS resolver for lookups (e.g. <code>nslookup @1.1.1.1</code>) so you’re not leaking recon intent to the target’s own authoritative DNS logs</li></ul></li></ul><hr><h2 id="2-Timing-Rate-Control"><a href="#2-Timing-Rate-Control" class="headerlink" title="2. Timing &amp; Rate Control"></a>2. Timing &amp; Rate Control</h2><p>Fast scans trip thresholds. Slow, jittered scans look like background noise.</p><table><thead><tr><th>Flag</th><th>Purpose</th></tr></thead><tbody><tr><td><code>-T1</code> &#x2F; <code>-T2</code> &#x2F; <code>-T3</code></td><td>Slow-and-steady timing templates - avoid <code>-T4</code>&#x2F;<code>-T5</code> for anything stealth-relevant</td></tr><tr><td><code>--scan-delay 10s</code></td><td>Fixed delay between probes</td></tr><tr><td><code>--max-rate</code> &#x2F; <code>--min-rate</code></td><td>Cap or randomize packet rate</td></tr><tr><td>Jittered delay</td><td>Don’t use a single static <code>--scan-delay</code> - vary it between a min&#x2F;max range. A perfectly even delay is itself a fingerprint</td></tr></tbody></table><p><strong>Probe one port at a time</strong> where possible - sequential single-port sweeps look more like normal traffic than a broad parallel sweep.</p><hr><h2 id="3-Reduce-Scan-Footprint"><a href="#3-Reduce-Scan-Footprint" class="headerlink" title="3. Reduce Scan Footprint"></a>3. Reduce Scan Footprint</h2><ul><li><code>-n</code> - disable DNS resolution (fewer requests, less noise, faster)</li><li><code>-Pn</code> - skip host discovery (avoids ICMP&#x2F;ARP pings that get logged separately)</li><li><code>-p 22,80,443</code> - scan only essential&#x2F;expected ports instead of full range</li><li><code>--randomize-hosts</code> - for multi-target scans, break sequential-scan patterns that log correlation tools flag easily</li></ul><hr><h2 id="4-Packet-Level-Evasion"><a href="#4-Packet-Level-Evasion" class="headerlink" title="4. Packet-Level Evasion"></a>4. Packet-Level Evasion</h2><p>These target how firewalls, IDS, and stateful inspection devices parse your packets.</p><ul><li><code>-f</code> &#x2F; <code>--mtu</code> - fragment packets to slip past inspection engines that don’t reassemble fragments before analysis</li><li><code>-D RND:10</code> - decoy scanning, mixes your real IP among generated noise<ul><li>Caveat worth including in the post: many modern IDS defeat decoys via TTL&#x2F;window-size inconsistency between the real source and decoys, so this is weaker than it used to be</li></ul></li><li><code>--source-port 53</code> &#x2F; <code>--source-port 88</code> - spoof source port to mimic DNS&#x2F;Kerberos replies, useful against naive stateless ACLs</li><li><code>--badsum</code> - send deliberately invalid checksums; real TCP&#x2F;IP stacks silently drop these, so a response reveals a device doing shallow inspection (small IDS&#x2F;firewall fingerprinting trick)</li><li><code>-S &lt;spoofed_IP&gt;</code> - spoof source IP for one-way, non-interactive probing (no return traffic to you, but can be used to trigger and observe IDS baselining behavior)</li><li><code>--data-length 24</code> - pad&#x2F;obfuscate packet size so it doesn’t match Nmap’s default signature length</li><li><code>--ttl &lt;value&gt;</code> - manually set TTL to match the OS&#x2F;hop-count you want to appear as<ul><li>Linux default TTL: 64</li><li>Windows default TTL: 128</li><li>Important when tunneling - if your redirector’s real TTL doesn’t match the OS you’re supposedly scanning as, that mismatch is a tell</li></ul></li></ul><hr><h2 id="5-Fingerprint-Minimization"><a href="#5-Fingerprint-Minimization" class="headerlink" title="5. Fingerprint Minimization"></a>5. Fingerprint Minimization</h2><p>Nmap itself has a recognizable wire signature, independent of the target.</p><ul><li><code>--send-eth</code> vs <code>--send-ip</code> - controls whether raw Ethernet or IP-layer packets are sent, affects L2 visibility</li><li><code>--scanflags</code> - customize TCP flag combinations so probes don’t match textbook Nmap SYN-scan signatures (MSS, timestamp, window-scale ordering are all keyed on by p0f-style fingerprinting)</li><li><code>--spoof-mac 0,Dell,</code> or <code>--spoof-mac &lt;random&gt;</code> - spoof the MAC vendor prefix to blend with the target’s expected hardware population (relevant for internal&#x2F;on-segment engagements)</li><li><code>--script-args http.useragent=STRING</code> - rotate user-agent strings for HTTP-based NSE scripts<ul><li>Reference list of realistic UAs: <a href="https://useragents.io/">https://useragents.io/</a></li></ul></li></ul><hr><h2 id="6-Idle-Zombie-Scanning"><a href="#6-Idle-Zombie-Scanning" class="headerlink" title="6. Idle &#x2F; Zombie Scanning"></a>6. Idle &#x2F; Zombie Scanning</h2><ul><li><code>-sI &lt;zombie_IP&gt;</code> - fully non-attributable scanning by bouncing off a third-party host with predictable IPID behavior</li><li>Worth a section on why this is harder today: most modern stacks randomize IPID per-connection rather than incrementing globally, which breaks the technique. Good zombie candidates are increasingly rare, but still worth explaining as the “gold standard” of attribution avoidance when it works</li></ul><p>Reference: Fyodor’s original idle scan writeup - <a href="https://nmap.org/idlescan.html">https://nmap.org/idlescan.html</a></p><hr><h2 id="7-Traffic-Routing-Attribution-Laundering"><a href="#7-Traffic-Routing-Attribution-Laundering" class="headerlink" title="7. Traffic Routing &amp; Attribution Laundering"></a>7. Traffic Routing &amp; Attribution Laundering</h2><h3 id="Proxy-chains"><a href="#Proxy-chains" class="headerlink" title="Proxy chains"></a>Proxy chains</h3><ul><li>Proxychains + SSH&#x2F;SOCKS redirector + residential proxy layering</li><li>High-reputation domains and CDNs (e.g. Cloudflare) as a front, since traffic appears to originate from trusted infrastructure</li><li>Residential proxy providers: <a href="https://www.webshare.io/">https://www.webshare.io</a></li><li>API abuse - tunnel scan traffic through legitimate API endpoints</li><li>Serverless scanning - route through disposable cloud functions (AWS Lambda, Azure Functions) for cheap, rotating, hard-to-attribute egress IPs</li><li>Tor - slow and frequently blocklisted, but worth mentioning as a last-resort option when residential proxies aren’t available</li></ul><h3 id="Worked-example-Proxychains-through-SSH-redirector-residential-proxy"><a href="#Worked-example-Proxychains-through-SSH-redirector-residential-proxy" class="headerlink" title="Worked example: Proxychains through SSH redirector + residential proxy"></a>Worked example: Proxychains through SSH redirector + residential proxy</h3><p><strong>1. Gather required info</strong></p><ul><li>SSH creds&#x2F;IP for the redirector</li><li>Residential proxy creds&#x2F;IP</li></ul><p><strong>2. Configure proxychains</strong></p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> nano /etc/proxychains4.conf</span><br></pre></td></tr></table></figure><ul><li>Comment out <code>proxy_dns</code></li><li>Comment out <code>socks4 127.0.0.1 9050</code></li><li>Add:</li></ul><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">socks5 127.0.0.1 1080</span><br><span class="line">http &lt;res_proxy_IP&gt; &lt;res_proxy_port&gt; &lt;username&gt; &lt;password&gt;</span><br></pre></td></tr></table></figure><p>Example:</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http 30.30.30.134 3128 operator1 ProxyPassword1</span><br></pre></td></tr></table></figure><p><strong>3. Start the SOCKS tunnel to the SSH redirector</strong></p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh -N -D 127.0.0.1:1080 root@&lt;ssh_redirector_IP&gt;</span><br></pre></td></tr></table></figure><p><strong>4. Run the scan through the chain</strong></p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> proxychains nmap -sT -n -Pn -p 445 &lt;target_IP&gt;</span><br></pre></td></tr></table></figure><p>Note: <code>-sT</code> (full TCP connect) is required here since proxychains can’t tunnel raw SYN packets - you lose <code>-sS</code> stealth scanning once you’re going through a SOCKS&#x2F;HTTP proxy chain.</p><p><strong>5. Proof of concept &#x2F; validation</strong></p><ul><li>Run Wireshark on the target</li><li>Re-run the scan through proxychains</li><li>Stop the capture</li><li>Confirm the connect scan appears to originate from the residential proxy IP, not your real infrastructure</li></ul><hr><h2 id="8-Challenges-Workarounds"><a href="#8-Challenges-Workarounds" class="headerlink" title="8. Challenges &amp; Workarounds"></a>8. Challenges &amp; Workarounds</h2><p><strong>Obstacle: Web Application Firewalls (WAFs) mask the real origin IP</strong></p><p>Workarounds to find the real IP behind a WAF&#x2F;CDN:</p><ul><li>Trigger the server to send outbound email (password reset, “contact us” forms, etc.) - mail headers sometimes leak origin IP</li><li>Historical DNS records via DNSDumpster (pre-WAF&#x2F;CDN adoption records)</li><li>SSL certificate data - certs issued directly to the origin server before CDN onboarding sometimes still resolve</li><li>Custom JA3 fingerprint spoofing to avoid TLS-based reputation blocking during any HTTPS-based probing</li></ul><p><strong>Tools for TLS&#x2F;JA3 spoofing</strong> (useful beyond raw Nmap, for any HTTPS-based recon):</p><ul><li><code>curl-impersonate</code></li><li><code>utls</code> (Go library) for custom ClientHello fingerprints</li></ul><hr><h2 id="9-Operational-Hygiene-Often-Forgotten"><a href="#9-Operational-Hygiene-Often-Forgotten" class="headerlink" title="9. Operational Hygiene (Often Forgotten)"></a>9. Operational Hygiene (Often Forgotten)</h2><ul><li>Don’t write scan output (<code>-oA</code>, <code>-oN</code>) to disk on infrastructure you don’t fully control - pipe <code>-oX -</code> to stdout directly, or scan from ephemeral&#x2F;throwaway VMs and containers</li><li><code>HISTFILE=/dev/null</code> (or equivalent) on redirector boxes shared with others</li><li>Treat every layer of your proxy chain as potentially logged - assume the residential proxy provider retains connection logs, and plan retention&#x2F;rotation accordingly</li></ul><hr><h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul><li>Nmap official docs: <a href="https://nmap.org/book/man.html">https://nmap.org/book/man.html</a></li><li>Nmap evasion chapter: <a href="https://nmap.org/book/man-bypass-firewalls-ids.html">https://nmap.org/book/man-bypass-firewalls-ids.html</a></li><li>Nmap timing&#x2F;performance: <a href="https://nmap.org/book/man-performance.html">https://nmap.org/book/man-performance.html</a></li><li>Nmap OS detection: <a href="https://nmap.org/book/osdetect.html">https://nmap.org/book/osdetect.html</a></li><li>Nmap idle scan writeup: <a href="https://nmap.org/idlescan.html">https://nmap.org/idlescan.html</a></li><li>NSE script database: <a href="https://nmap.org/nsedoc/">https://nmap.org/nsedoc/</a></li><li><em>Nmap Network Scanning</em> — Gordon “Fyodor” Lyon</li><li>MITRE ATT&amp;CK T1595 (Active Scanning): <a href="https://attack.mitre.org/techniques/T1595/">https://attack.mitre.org/techniques/T1595/</a></li><li>HackTricks — Pentesting Network methodology: <a href="https://book.hacktricks.xyz/generic-methodologies-and-resources/pentesting-network">https://book.hacktricks.xyz/generic-methodologies-and-resources/pentesting-network</a></li><li>User-agent reference: <a href="https://useragents.io/">https://useragents.io/</a></li><li>Residential proxy provider (example): <a href="https://www.webshare.io/">https://www.webshare.io</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> security </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> security </tag>
+            
+            <tag> opsec </tag>
+            
+            <tag> guide </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>HackTheBox - Cyberpsychosis (Easy)</title>
       <link href="/2026/07/16/2026-07-16-reversing/"/>
       <url>/2026/07/16/2026-07-16-reversing/</url>
@@ -210,6 +239,33 @@
     
     
     <entry>
+      <title>Welcome to Hack The Box Notes</title>
+      <link href="/2026/05/01/2026-05-01-welcome-hackthebox/"/>
+      <url>/2026/05/01/2026-05-01-welcome-hackthebox/</url>
+      
+        <content type="html"><![CDATA[<p>This category is for my <strong>Hack The Box</strong> notes, machine writeups, and training progress.</p><p>Future posts here can include box walkthroughs, enumeration notes, and lessons learned.</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> hackthebox </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> hackthebox </tag>
+            
+            <tag> labs </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Welcome to PortSwigger Notes</title>
       <link href="/2026/05/01/2026-05-01-welcome-portswigger/"/>
       <url>/2026/05/01/2026-05-01-welcome-portswigger/</url>
@@ -256,33 +312,6 @@
             <tag> tryhackme </tag>
             
             <tag> walkthrough </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>Welcome to Hack The Box Notes</title>
-      <link href="/2026/05/01/2026-05-01-welcome-hackthebox/"/>
-      <url>/2026/05/01/2026-05-01-welcome-hackthebox/</url>
-      
-        <content type="html"><![CDATA[<p>This category is for my <strong>Hack The Box</strong> notes, machine writeups, and training progress.</p><p>Future posts here can include box walkthroughs, enumeration notes, and lessons learned.</p>]]></content>
-      
-      
-      <categories>
-          
-          <category> hackthebox </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
-            <tag> hackthebox </tag>
-            
-            <tag> labs </tag>
             
         </tags>
       

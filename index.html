@@ -139,6 +139,76 @@
 <div class="row">
 	<div class="col-md-8">
 		<h3 class="title">
+			<a href="/2026/08/12/2026-08-12-nmap-opsec/" title="A guide on nmap opsec from a redteam mindset.">RedTeam guide for nmap opsec</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-08-12  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<p>Nmap is loud by default. Every technique below exists to reduce the signal you generate - in volume, in pattern, and in attribution - while still getting the recon you need. This post walks through the opsec stack from “don’t scan at all if you don’t have to” down to packet-level fingerprint evasion.</p>
+<hr>
+<h2 id="1-Minimize-Active-Scanning"><a href="#1-Minimize-Active-Scanning" class="headerlink" title="1. Minimize Active Scanning"></a>1. Minimize Active Scanning</h2><p>The best scan is the one you don’t run.</p>
+<ul>
+<li><strong>Passive recon first</strong> - pull as much as possible before touching the target:<ul>
+<li>Shodan, Censys - pre-indexed port&#x2F;service data</li>
+<li>crt.sh - certificate transparency logs (subdomains, infra hints)</li>
+<li>DNSDumpster - historical DNS records</li>
+<li>BGP.he.net - ASN&#x2F;netblock mapping</li>
+</ul>
+</li>
+<li><strong>Resolve scope without noise</strong><ul>
+<li><code>nslookup domain.com</code> - only scan the resolved target IP, not the whole domain surface</li>
+<li>Use a non-default, non-org DNS resolver for lookups (e.g. <code>nslookup @1.1.1.1</code>) so you’re not leaking recon intent to the target’s own authoritative DNS logs</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="2-Timing-Rate-Control"><a href="#2-Timing-Rate-Control" class="headerlink" title="2. Timing &amp; Rate Control"></a>2. Timing &amp; Rate Control</h2><p>Fast scans trip thresholds. Slow, jittered scans look like background noise.</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>-T1</code> &#x2F; <code>-T2</code> &#x2F; <code>-T3</code></td>
+<td>Slow-and-steady timing templates - avoid <code>-T4</code>&#x2F;<code>-T5</code> for anything stealth-relevant</td>
+</tr>
+<tr>
+<td><code>--scan-delay 10s</code></td>
+<td>Fixed delay between probes</td>
+</tr>
+<tr>
+<td><code>--max-rate</code> &#x2F; <code>--min-rate</code></td>
+<td>Cap or randomize packet rate</td>
+</tr>
+<tr>
+<td>Jittered delay</td>
+<td>Don’t use a single static <code>--scan-delay</code> - vary it between a min&#x2F;max range. A perfectly even delay is itself a fingerprint</td>
+</tr>
+</tbody></table>
+<p><strong>Probe one port at a time</strong> where possible - sequential single-port sweeps look more like normal traffic than a broad parallel sweep.</p>
+	
+	</div>
+  <a type="button" href="/2026/08/12/2026-08-12-nmap-opsec/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
 			<a href="/2026/07/16/2026-07-16-reversing/" title="A documentation of my early steps learning to reverse engineer">HackTheBox - Cyberpsychosis (Easy)</a>
 		</h3>
 		</div>
@@ -509,7 +579,7 @@
 <div class="row">
 	<div class="col-md-8">
 		<h3 class="title">
-			<a href="/2026/05/01/2026-05-01-welcome-portswigger/" title="A starter post for PortSwigger Academy notes and web security practice.">Welcome to PortSwigger Notes</a>
+			<a href="/2026/05/01/2026-05-01-welcome-hackthebox/" title="A starter post for Hack The Box notes and writeups.">Welcome to Hack The Box Notes</a>
 		</h3>
 		</div>
 	<div class="col-md-4">
@@ -523,41 +593,12 @@
   <div class="row">
 	
 	
-		<p>This category is for my <strong>PortSwigger</strong> Academy notes, lab references, and web security learning.</p>
-<p>Future posts here can include lab summaries, exploitation notes, and useful techniques.</p>
+		<p>This category is for my <strong>Hack The Box</strong> notes, machine writeups, and training progress.</p>
+<p>Future posts here can include box walkthroughs, enumeration notes, and lessons learned.</p>
 
 	
 	</div>
-  <a type="button" href="/2026/05/01/2026-05-01-welcome-portswigger/#more" class="btn btn-default more">Read More</a>
-</div>
-
-		
-			
-	
-	<!-- display as entry -->
-<div class="row">
-	<div class="col-md-8">
-		<h3 class="title">
-			<a href="/2026/05/01/2026-05-01-welcome/" title="A starter post for TryHackMe-related writeups and notes.">Welcome to TryHackMe Notes</a>
-		</h3>
-		</div>
-	<div class="col-md-4">
-		<div class="date">post @ 2026-05-01  </div>
-		</div>
-	</div>
-	
-
-
-			<div class="entry">
-  <div class="row">
-	
-	
-		<p>This category is for my <strong>TryHackMe</strong> notes, walkthroughs, and learning progress.</p>
-<p>Future posts here can include room notes, takeaways, and short writeups.</p>
-
-	
-	</div>
-  <a type="button" href="/2026/05/01/2026-05-01-welcome/#more" class="btn btn-default more">Read More</a>
+  <a type="button" href="/2026/05/01/2026-05-01-welcome-hackthebox/#more" class="btn btn-default more">Read More</a>
 </div>
 
 		
@@ -612,7 +653,7 @@
 		
 			<li><a href="/categories/portswigger/">portswigger<span>1</span></a></li>
 		
-			<li><a href="/categories/security/">security<span>2</span></a></li>
+			<li><a href="/categories/security/">security<span>3</span></a></li>
 		
 			<li><a href="/categories/tryhackme/">tryhackme<span>2</span></a></li>
 		
@@ -625,23 +666,27 @@
 		<h4>Tag Cloud</h4>
 		<ul class="tag_box inline list-unstyled">		
 		
-			<li><a href="/tags/tryhackme/">tryhackme<span>2</span></a></li>
-		
-			<li><a href="/tags/dns/">dns<span>1</span></a></li>
-		
-			<li><a href="/tags/web-security/">web-security<span>2</span></a></li>
-		
-			<li><a href="/tags/portswigger/">portswigger<span>1</span></a></li>
-		
-			<li><a href="/tags/reversing/">reversing<span>1</span></a></li>
-		
 			<li><a href="/tags/walkthrough/">walkthrough<span>1</span></a></li>
 		
-			<li><a href="/tags/security/">security<span>2</span></a></li>
+			<li><a href="/tags/tryhackme/">tryhackme<span>2</span></a></li>
+		
+			<li><a href="/tags/guide/">guide<span>1</span></a></li>
 		
 			<li><a href="/tags/hackthebox/">hackthebox<span>6</span></a></li>
 		
+			<li><a href="/tags/dns/">dns<span>1</span></a></li>
+		
+			<li><a href="/tags/opsec/">opsec<span>1</span></a></li>
+		
+			<li><a href="/tags/web-security/">web-security<span>2</span></a></li>
+		
+			<li><a href="/tags/reversing/">reversing<span>1</span></a></li>
+		
 			<li><a href="/tags/labs/">labs<span>1</span></a></li>
+		
+			<li><a href="/tags/portswigger/">portswigger<span>1</span></a></li>
+		
+			<li><a href="/tags/security/">security<span>3</span></a></li>
 		
 		 
 		</ul>
@@ -653,6 +698,10 @@
 <div class="widget">
   <h4>Recent Posts</h4>
   <ul class="entry list-unstyled">
+    
+      <li>
+        <a href="/2026/08/12/2026-08-12-nmap-opsec/"  title="A guide on nmap opsec from a redteam mindset." ><i class="fa fa-file-o"></i>RedTeam guide for nmap opsec</a>
+      </li>
     
       <li>
         <a href="/2026/07/16/2026-07-16-reversing/"  title="A documentation of my early steps learning to reverse engineer" ><i class="fa fa-file-o"></i>HackTheBox - Cyberpsychosis...</a>
@@ -668,10 +717,6 @@
     
       <li>
         <a href="/2026/06/04/2026-06-04-silentium/"  title="Writeup for Silentium CTF." ><i class="fa fa-file-o"></i>Silentium - CTF Writeup</a>
-      </li>
-    
-      <li>
-        <a href="/2026/05/31/2026-05-31-principal/"  title="Writeup for Principal CTF." ><i class="fa fa-file-o"></i>Principal - CTF Writeup</a>
       </li>
     
   </ul>
