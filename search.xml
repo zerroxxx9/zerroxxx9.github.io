@@ -228,9 +228,9 @@
       
         <tags>
             
-            <tag> web-security </tag>
-            
             <tag> tryhackme </tag>
+            
+            <tag> web-security </tag>
             
         </tags>
       
@@ -266,33 +266,6 @@
     
     
     <entry>
-      <title>Welcome to PortSwigger Notes</title>
-      <link href="/2026/05/01/2026-05-01-welcome-portswigger/"/>
-      <url>/2026/05/01/2026-05-01-welcome-portswigger/</url>
-      
-        <content type="html"><![CDATA[<p>This category is for my <strong>PortSwigger</strong> Academy notes, lab references, and web security learning.</p><p>Future posts here can include lab summaries, exploitation notes, and useful techniques.</p>]]></content>
-      
-      
-      <categories>
-          
-          <category> portswigger </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
-            <tag> portswigger </tag>
-            
-            <tag> web-security </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>Welcome to TryHackMe Notes</title>
       <link href="/2026/05/01/2026-05-01-welcome/"/>
       <url>/2026/05/01/2026-05-01-welcome/</url>
@@ -312,6 +285,33 @@
             <tag> tryhackme </tag>
             
             <tag> walkthrough </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Welcome to PortSwigger Notes</title>
+      <link href="/2026/05/01/2026-05-01-welcome-portswigger/"/>
+      <url>/2026/05/01/2026-05-01-welcome-portswigger/</url>
+      
+        <content type="html"><![CDATA[<p>This category is for my <strong>PortSwigger</strong> Academy notes, lab references, and web security learning.</p><p>Future posts here can include lab summaries, exploitation notes, and useful techniques.</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> portswigger </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> portswigger </tag>
+            
+            <tag> web-security </tag>
             
         </tags>
       
