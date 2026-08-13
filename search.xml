@@ -4,6 +4,35 @@
   
     
     <entry>
+      <title>De Morgan&#39;s law</title>
+      <link href="/2026/08/13/2026-08-13-de-morgan/"/>
+      <url>/2026/08/13/2026-08-13-de-morgan/</url>
+      
+        <content type="html"><![CDATA[<p>This post is the first of my learning CPU Architecture series by playing Turing Complete. I will capture my notes in this blog :)</p><hr><p>The game starts off with Boolean logic, boolean logic is a branch of algebra that deals with variables having only two possible values: true (1) &#x2F; false (0). Boolean logic is the foundation of digital electronics and programming. The truth tables of the four fundamental gates are symmetrical. You can convert between <em>inverting the input</em> or <em>inverting the output</em>.</p><h2 id="Notes"><a href="#Notes" class="headerlink" title="Notes"></a>Notes</h2><ul><li>You can get from any basic gate to any other basic gate, at most you have to NOT both inputs and output.</li><li>You can go between OR&#x2F;NOR by inverting output, the same with AND&#x2F;NAND. In fact NOR means NOT OR and NAND means NOT AND.</li><li>Negating the output flips all the bits in the last row of the truth table. Negating the inputs mirrors the last row of the truth table around the center.</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> turing_complete </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> guide </tag>
+            
+            <tag> hardware </tag>
+            
+            <tag> architecture </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>RedTeam guide for nmap opsec</title>
       <link href="/2026/08/12/2026-08-12-nmap-opsec/"/>
       <url>/2026/08/12/2026-08-12-nmap-opsec/</url>
@@ -228,9 +257,9 @@
       
         <tags>
             
-            <tag> web-security </tag>
-            
             <tag> tryhackme </tag>
+            
+            <tag> web-security </tag>
             
         </tags>
       
@@ -266,33 +295,6 @@
     
     
     <entry>
-      <title>Welcome to PortSwigger Notes</title>
-      <link href="/2026/05/01/2026-05-01-welcome-portswigger/"/>
-      <url>/2026/05/01/2026-05-01-welcome-portswigger/</url>
-      
-        <content type="html"><![CDATA[<p>This category is for my <strong>PortSwigger</strong> Academy notes, lab references, and web security learning.</p><p>Future posts here can include lab summaries, exploitation notes, and useful techniques.</p>]]></content>
-      
-      
-      <categories>
-          
-          <category> portswigger </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
-            <tag> portswigger </tag>
-            
-            <tag> web-security </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>Welcome to TryHackMe Notes</title>
       <link href="/2026/05/01/2026-05-01-welcome/"/>
       <url>/2026/05/01/2026-05-01-welcome/</url>
@@ -312,6 +314,33 @@
             <tag> tryhackme </tag>
             
             <tag> walkthrough </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Welcome to PortSwigger Notes</title>
+      <link href="/2026/05/01/2026-05-01-welcome-portswigger/"/>
+      <url>/2026/05/01/2026-05-01-welcome-portswigger/</url>
+      
+        <content type="html"><![CDATA[<p>This category is for my <strong>PortSwigger</strong> Academy notes, lab references, and web security learning.</p><p>Future posts here can include lab summaries, exploitation notes, and useful techniques.</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> portswigger </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> portswigger </tag>
+            
+            <tag> web-security </tag>
             
         </tags>
       
