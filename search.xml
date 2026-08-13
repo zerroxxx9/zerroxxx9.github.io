@@ -228,9 +228,9 @@
       
         <tags>
             
-            <tag> tryhackme </tag>
-            
             <tag> web-security </tag>
+            
+            <tag> tryhackme </tag>
             
         </tags>
       
@@ -266,33 +266,6 @@
     
     
     <entry>
-      <title>Welcome to TryHackMe Notes</title>
-      <link href="/2026/05/01/2026-05-01-welcome/"/>
-      <url>/2026/05/01/2026-05-01-welcome/</url>
-      
-        <content type="html"><![CDATA[<p>This category is for my <strong>TryHackMe</strong> notes, walkthroughs, and learning progress.</p><p>Future posts here can include room notes, takeaways, and short writeups.</p>]]></content>
-      
-      
-      <categories>
-          
-          <category> tryhackme </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
-            <tag> tryhackme </tag>
-            
-            <tag> walkthrough </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>Welcome to PortSwigger Notes</title>
       <link href="/2026/05/01/2026-05-01-welcome-portswigger/"/>
       <url>/2026/05/01/2026-05-01-welcome-portswigger/</url>
@@ -312,6 +285,33 @@
             <tag> portswigger </tag>
             
             <tag> web-security </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Welcome to TryHackMe Notes</title>
+      <link href="/2026/05/01/2026-05-01-welcome/"/>
+      <url>/2026/05/01/2026-05-01-welcome/</url>
+      
+        <content type="html"><![CDATA[<p>This category is for my <strong>TryHackMe</strong> notes, walkthroughs, and learning progress.</p><p>Future posts here can include room notes, takeaways, and short writeups.</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> tryhackme </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> tryhackme </tag>
+            
+            <tag> walkthrough </tag>
             
         </tags>
       
