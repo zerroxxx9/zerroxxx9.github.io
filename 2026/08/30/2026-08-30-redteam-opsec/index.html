@@ -6,41 +6,15 @@
   <meta http-equiv="cache-control" content="no-cache">
   <meta http-equiv="expires" content="0">
   
-  <title>zerrox&#39; security blog</title>
+  <title>general opsec for RedTeams | zerrox&#39; security blog</title>
   <meta name="author" content="zerrox9">
   
-  <meta name="description" content="Infrastructure Segmentation
-Tier infra by burn tolerance.
-Long-haul C2 (redirectors, domains) → protect heavily, isolate fully
-Short-haul (scanning boxes, phishing landers) → expect to burn, plan for it
-Throwaway (single-use VPS, one action) → disposable by design
-Rule: short-haul infra never shares a hosting account, SSH key, or billing method with long-haul infra. Ever.
-
-
-Age your domains. Register months ahead of use, let them sit with a benign parked page or fake blog. A freshly registered domain gets flagged by reputation engines almost immediately: this isn’t optional anymore.
-Pre-categorize domains with reputation services (Bluecoat, Cisco Talos, Palo Alto URL filtering) before the engagement starts, so they resolve as “business”&amp;#x2F;“technology” instead of “uncategorized”: which is itself a detection signal on a lot of proxy&amp;#x2F;SWG rulesets.
-TLS hygiene. Let’s Encrypt or a real CA for anything client-facing. Self-signed certs on a random VPS will get you caught.
-
-
-C2 Traffic Shaping
-Domain&amp;#x2F;CDN fronting: mostly dead now. Cloudflare, AWS etc. actively detect and block it. Worth knowing how it works, not worth building a plan around.
-Malleable C2 profiles: shape beacon traffic to look like Slack, Teams, OneDrive API calls instead of raw HTTP POSTs.
-Jitter + sleep timers: same logic as scan-delay jitter. A static beacon interval gets caught by traffic analysis in minutes. Randomize it.
-Match traffic volume to the mimicked protocol. Payload sizes that are too big or too small for what you’re impersonating stand out immediately.
-
-
-DNS-Layer OPSEC
-DoH for C2&amp;#x2F;exfil blends into normal DoH traffic to Cloudflare&amp;#x2F;Google resolvers: much harder for network-layer DNS monitoring to catch.
-Low-and-slow DNS tunneling. Throttle the query rate hard. Detection keys almost entirely on volume&amp;#x2F;entropy per domain over time.
-Your own DNS logs are a leak vector too. If you control the domain, remember the DNS provider is logging every lookup: including from defenders investigating you mid-engagement.
-
-
-Endpoint &amp;amp; Payload OPSEC"> 
+  <meta name="description" content="Getting through recon clean is only step one. Most engagements don&#39;t get burned during scanning: they get burned later, during infra, C2, DNS, or just sloppy operator habits. In this post i try to cover some important steps to cover the next step of the previous started redteam opsec &#39;series&#39;.">
   
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  
+  <meta property="og:title" content="general opsec for RedTeams"/>
   <meta property="og:site_name" content="zerrox&#39; security blog"/>
 
   
@@ -141,7 +115,7 @@ Endpoint &amp;amp; Payload OPSEC">
 
 	
 		<div class="page-header">
-			<h1> </h1>
+			<h1> general opsec for RedTeams</h1>
 		</div>
 	
 
@@ -156,6 +130,10 @@ Endpoint &amp;amp; Payload OPSEC">
 
 	<!-- content -->
 	<div class="mypage">		
+	  
+		 <div class="alert alert-success description">
+			<i class="fa fa-info-circle"></i> Getting through recon clean is only step one. Most engagements don't get burned during scanning: they get burned later, during infra, C2, DNS, or just sloppy operator habits. In this post i try to cover some important steps to cover the next step of the previous started redteam opsec 'series'.
+		 </div> <!-- alert -->
 	  		
 
 	  <h2 id="Infrastructure-Segmentation"><a href="#Infrastructure-Segmentation" class="headerlink" title="Infrastructure Segmentation"></a>Infrastructure Segmentation</h2><ul>
@@ -274,8 +252,27 @@ Endpoint &amp;amp; Payload OPSEC">
 
 	<!-- categories -->
     
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#categorys"><i class="fa fa-folder"></i></a>	
+    <ul id="categorys" class="tag_box list-unstyled collapse in">
+          
+  <li>
+    <li><a href="/categories/security/">security<span>4</span></a></li> <li><a href="/categories/security/opsec/">opsec<span>2</span></a></li>
+  </li>
+
+    </ul>
+	</div>
+	
 
 	<!-- tags -->
+	
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
+    <ul id="tags" class="tag_box list-unstyled collapse in">	  
+	    
+  <li><a href="/tags/security/">security<span>4</span></a></li> <li><a href="/tags/guide/">guide<span>3</span></a></li> <li><a href="/tags/opsec/">opsec<span>2</span></a></li>
+    </ul>
+	</div>
 		
 
 	<!-- toc -->

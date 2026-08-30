@@ -4,13 +4,31 @@
   
     
     <entry>
-      <title></title>
+      <title>general opsec for RedTeams</title>
       <link href="/2026/08/30/2026-08-30-redteam-opsec/"/>
       <url>/2026/08/30/2026-08-30-redteam-opsec/</url>
       
         <content type="html"><![CDATA[<h2 id="Infrastructure-Segmentation"><a href="#Infrastructure-Segmentation" class="headerlink" title="Infrastructure Segmentation"></a>Infrastructure Segmentation</h2><ul><li><strong>Tier infra by burn tolerance.</strong><ul><li>Long-haul C2 (redirectors, domains) → protect heavily, isolate fully</li><li>Short-haul (scanning boxes, phishing landers) → expect to burn, plan for it</li><li>Throwaway (single-use VPS, one action) → disposable by design</li><li>Rule: short-haul infra never shares a hosting account, SSH key, or billing method with long-haul infra. Ever.</li></ul></li><li><strong>Age your domains.</strong> Register months ahead of use, let them sit with a benign parked page or fake blog. A freshly registered domain gets flagged by reputation engines almost immediately: this isn’t optional anymore.</li><li><strong>Pre-categorize domains</strong> with reputation services (Bluecoat, Cisco Talos, Palo Alto URL filtering) before the engagement starts, so they resolve as “business”&#x2F;“technology” instead of “uncategorized”: which is itself a detection signal on a lot of proxy&#x2F;SWG rulesets.</li><li><strong>TLS hygiene.</strong> Let’s Encrypt or a real CA for anything client-facing. Self-signed certs on a random VPS will get you caught.</li></ul><hr><h2 id="C2-Traffic-Shaping"><a href="#C2-Traffic-Shaping" class="headerlink" title="C2 Traffic Shaping"></a>C2 Traffic Shaping</h2><ul><li><strong>Domain&#x2F;CDN fronting</strong>: mostly dead now. Cloudflare, AWS etc. actively detect and block it. Worth knowing how it works, not worth building a plan around.</li><li><strong>Malleable C2 profiles</strong>: shape beacon traffic to look like Slack, Teams, OneDrive API calls instead of raw HTTP POSTs.</li><li><strong>Jitter + sleep timers</strong>: same logic as scan-delay jitter. A static beacon interval gets caught by traffic analysis in minutes. Randomize it.</li><li><strong>Match traffic volume to the mimicked protocol.</strong> Payload sizes that are too big or too small for what you’re impersonating stand out immediately.</li></ul><hr><h2 id="DNS-Layer-OPSEC"><a href="#DNS-Layer-OPSEC" class="headerlink" title="DNS-Layer OPSEC"></a>DNS-Layer OPSEC</h2><ul><li><strong>DoH for C2&#x2F;exfil</strong> blends into normal DoH traffic to Cloudflare&#x2F;Google resolvers: much harder for network-layer DNS monitoring to catch.</li><li><strong>Low-and-slow DNS tunneling.</strong> Throttle the query rate hard. Detection keys almost entirely on volume&#x2F;entropy per domain over time.</li><li><strong>Your own DNS logs are a leak vector too.</strong> If you control the domain, remember the DNS provider is logging every lookup: including from defenders investigating you mid-engagement.</li></ul><hr><h2 id="Endpoint-Payload-OPSEC"><a href="#Endpoint-Payload-OPSEC" class="headerlink" title="Endpoint &amp; Payload OPSEC"></a>Endpoint &amp; Payload OPSEC</h2><ul><li><strong>LOLBins over custom binaries.</strong> PowerShell, WMI, certutil, bitsadmin: AV&#x2F;EDR baseline-trusts these far more than an unknown exe.</li><li><strong>In-memory execution &#x2F; reflective loading.</strong> Stay off disk. Disk-scan and signature matching target file-based artifacts, not memory.</li><li><strong>Know your AMSI&#x2F;ETW footprint</strong> even when nothing fires live. EDR logs plenty it doesn’t alert on: plan for what ends up in a SOC’s retro-hunt data later, not just what gets actioned in real time.</li><li><strong>Sleep before execution</strong> to dodge short sandbox observation windows. Trade-off: delayed execution can itself look suspicious to a human analyst reviewing the timeline after the fact.</li></ul><hr><h2 id="Operator-Behavioral-OPSEC"><a href="#Operator-Behavioral-OPSEC" class="headerlink" title="Operator Behavioral OPSEC"></a>Operator Behavioral OPSEC</h2><ul><li><strong>Match time zone and working hours</strong> to whatever you’re impersonating or blending into. Don’t run ops on your own schedule if you’re posing as internal.</li><li><strong>Never reuse infra across engagements.</strong> Same redirector, same JA3 fingerprint, same C2 profile across clients: that’s exactly how red team infra ends up in threat intel feeds.</li><li><strong>Strip build&#x2F;commit metadata.</strong> Compiler paths, usernames, internal project refs: all of it comes out before delivery. PDB paths are a classic, dumb, accidental deanonymization vector.</li><li><strong>Keep attacker identity fully separate from personal identity.</strong> Dedicated VMs and personas for engagement work. No crossover in browser profiles, SSH keys, or cloud billing with anything tied to you personally.</li></ul><hr><h2 id="Detection-Awareness-Loop"><a href="#Detection-Awareness-Loop" class="headerlink" title="Detection-Awareness Loop"></a>Detection-Awareness Loop</h2><ul><li><strong>Assume purple team visibility.</strong> Where the scope allows it, find out (or infer) what EDR&#x2F;SIEM the target runs and calibrate technique choice to known gaps for that specific product. Stealthy against Defender is not the same as stealthy against CrowdStrike.</li><li><strong>Watch for canaries&#x2F;honeypots.</strong> An oddly clean, low-noise, weirdly-named host in a target range is sometimes a deliberate tripwire. Treat it with more suspicion than a normal-looking production box.</li></ul><hr><h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul><li>MITRE ATT&amp;CK: Command and Control tactics: <a href="https://attack.mitre.org/tactics/TA0011/">https://attack.mitre.org/tactics/TA0011/</a></li><li>MITRE ATT&amp;CK: Defense Evasion tactics: <a href="https://attack.mitre.org/tactics/TA0005/">https://attack.mitre.org/tactics/TA0005/</a></li><li>MITRE ATT&amp;CK T1071 (Application Layer Protocol, C2 traffic shaping): <a href="https://attack.mitre.org/techniques/T1071/">https://attack.mitre.org/techniques/T1071/</a></li><li>MITRE ATT&amp;CK T1071.004 (DNS as C2 channel): <a href="https://attack.mitre.org/techniques/T1071/004/">https://attack.mitre.org/techniques/T1071/004/</a></li><li>MITRE ATT&amp;CK T1027 (Obfuscated Files or Information): <a href="https://attack.mitre.org/techniques/T1027/">https://attack.mitre.org/techniques/T1027/</a></li><li>LOLBAS project (Living Off The Land Binaries and Scripts): <a href="https://lolbas-project.github.io/">https://lolbas-project.github.io/</a></li><li>Malleable C2 profile documentation (Cobalt Strike): <a href="https://www.cobaltstrike.com/help-malleable-c2">https://www.cobaltstrike.com/help-malleable-c2</a></li></ul>]]></content>
       
       
+      <categories>
+          
+          <category> security </category>
+          
+          <category> opsec </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> security </tag>
+            
+            <tag> guide </tag>
+            
+            <tag> opsec </tag>
+            
+        </tags>
       
     </entry>
     
@@ -33,11 +51,11 @@
       
         <tags>
             
-            <tag> guide </tag>
-            
             <tag> hardware </tag>
             
             <tag> architecture </tag>
+            
+            <tag> guide </tag>
             
         </tags>
       
@@ -57,6 +75,8 @@
           
           <category> security </category>
           
+          <category> opsec </category>
+          
       </categories>
       
       
@@ -64,9 +84,9 @@
             
             <tag> security </tag>
             
-            <tag> opsec </tag>
-            
             <tag> guide </tag>
+            
+            <tag> opsec </tag>
             
         </tags>
       
