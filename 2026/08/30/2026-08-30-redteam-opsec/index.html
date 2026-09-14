@@ -147,7 +147,10 @@
 <li><strong>Age your domains.</strong> Register months ahead of use, let them sit with a benign parked page or fake blog. A freshly registered domain gets flagged by reputation engines almost immediately: this isn’t optional anymore.</li>
 <li><strong>Pre-categorize domains</strong> with reputation services (Bluecoat, Cisco Talos, Palo Alto URL filtering) before the engagement starts, so they resolve as “business”&#x2F;“technology” instead of “uncategorized”: which is itself a detection signal on a lot of proxy&#x2F;SWG rulesets.</li>
 <li><strong>TLS hygiene.</strong> Let’s Encrypt or a real CA for anything client-facing. Self-signed certs on a random VPS will get you caught.</li>
+<li><strong>Fail-safe VPN connections</strong> Use the following settings to prevent your VPN leaking sensitive informations:<br><code>openvpn --script-security 2 --down fail-safe.sh --config vpn-file.ovpn</code></li>
 </ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/bash</span><br><span class="line">systemctl stop network-manager</span><br><span class="line">killall -9 dhclient</span><br><span class="line">for i in $(ifconfig | grep -iEo &#x27;^[a-z0-9]+:&#x27; | grep -v &#x27;^lo:$&#x27; | cut -d &#x27;:&#x27; -f 1)</span><br><span class="line">do</span><br><span class="line">  ifconfig $i 0.0.0.0 down</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+
 <hr>
 <h2 id="C2-Traffic-Shaping"><a href="#C2-Traffic-Shaping" class="headerlink" title="C2 Traffic Shaping"></a>C2 Traffic Shaping</h2><ul>
 <li><strong>Domain&#x2F;CDN fronting</strong>: mostly dead now. Cloudflare, AWS etc. actively detect and block it. Worth knowing how it works, not worth building a plan around.</li>
