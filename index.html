@@ -138,6 +138,42 @@
 <div class="row">
 	<div class="col-md-8">
 		<h3 class="title">
+			<a href="/2026/09/18/2026-09-18-ec2-ssrf/" title="Writeup for CloudGoat&#39;s EC2 SSRF scenario.">CloudGoat - EC2 SSRF</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-09-18  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="CloudGoat-EC2-SSRF"><a href="#CloudGoat-EC2-SSRF" class="headerlink" title="CloudGoat - EC2 SSRF"></a>CloudGoat - EC2 SSRF</h1><h5 id="Difficulty-MEDIUM"><a href="#Difficulty-MEDIUM" class="headerlink" title="Difficulty: MEDIUM"></a>Difficulty: MEDIUM</h5><h2 id="Reconnaissance"><a href="#Reconnaissance" class="headerlink" title="Reconnaissance"></a>Reconnaissance</h2><p>Enumerating Lambda functions with the <code>solus</code> profile leaks an EC2 access key pair in the function’s environment variables:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">aws lambda list-functions --profile solus</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;Environment&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;Variables&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;EC2_ACCESS_KEY_ID&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&lt;ACCESS_KEY_ID&gt;&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;EC2_SECRET_KEY_ID&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&lt;SECRET_KEY_ID&gt;&quot;</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>Function: <code>/aws/lambda/cg-lambda-cgid4fgoi5jd4i</code></p>
+<p>Using those keys to enumerate EC2 instances:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">aws ec2 describe-instances --profile ec2</span><br></pre></td></tr></table></figure>
+
+<h2 id="Initial-Access-SSRF"><a href="#Initial-Access-SSRF" class="headerlink" title="Initial Access - SSRF"></a>Initial Access - SSRF</h2>
+	
+	</div>
+  <a type="button" href="/2026/09/18/2026-09-18-ec2-ssrf/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
 			<a href="/2026/09/18/2026-09-18-rce-web-app/" title="Writeup for CloudGoat&#39;s RCE WebApp.">CloudGoat - RCE WebApp</a>
 		</h3>
 		</div>
@@ -576,59 +612,6 @@
 </div>
 
 		
-			
-	
-	<!-- display as entry -->
-<div class="row">
-	<div class="col-md-8">
-		<h3 class="title">
-			<a href="/2026/05/31/2026-05-31-principal/" title="Writeup for Principal CTF.">Principal - CTF Writeup</a>
-		</h3>
-		</div>
-	<div class="col-md-4">
-		<div class="date">post @ 2026-05-31  </div>
-		</div>
-	</div>
-	
-
-
-			<div class="entry">
-  <div class="row">
-	
-	
-		<h1 id="Principal-CTF-Writeup"><a href="#Principal-CTF-Writeup" class="headerlink" title="Principal - CTF Writeup"></a>Principal - CTF Writeup</h1><h2 id="Reconnaissance"><a href="#Reconnaissance" class="headerlink" title="Reconnaissance"></a>Reconnaissance</h2><p>The initial port scan showed only two exposed services: SSH and a Jetty-based web application on port <code>8080</code>.</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Starting Nmap 7.99 ( https://nmap.org ) at 2026-05-28 09:52 -0400</span><br><span class="line">Nmap scan report for 10.129.244.220</span><br><span class="line">Host is up (0.012s latency).</span><br><span class="line">Not shown: 65533 closed tcp ports (reset)</span><br><span class="line"></span><br><span class="line">PORT     STATE SERVICE    VERSION</span><br><span class="line">22/tcp   open  ssh        OpenSSH 9.6p1 Ubuntu 3ubuntu13.14 (Ubuntu Linux; protocol 2.0)</span><br><span class="line">8080/tcp open  http-proxy Jetty</span><br></pre></td></tr></table></figure>
-
-<p>The HTTP service redirected to <code>/login</code> and exposed an interesting application header:</p>
-<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">HTTP/1.1</span> <span class="number">302</span> Found</span><br><span class="line"><span class="attribute">Server</span><span class="punctuation">: </span>Jetty</span><br><span class="line"><span class="attribute">X-Powered-By</span><span class="punctuation">: </span>pac4j-jwt/6.0.3</span><br><span class="line"><span class="attribute">Location</span><span class="punctuation">: </span>/login</span><br></pre></td></tr></table></figure>
-
-<table>
-<thead>
-<tr>
-<th>Port</th>
-<th>Service</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>22/tcp</code></td>
-<td>SSH</td>
-<td>OpenSSH 9.6p1 on Ubuntu</td>
-</tr>
-<tr>
-<td><code>8080/tcp</code></td>
-<td>HTTP &#x2F; Jetty</td>
-<td>Login page with <code>pac4j-jwt/6.0.3</code> header</td>
-</tr>
-</tbody></table>
-<h2 id="Web-Enumeration"><a href="#Web-Enumeration" class="headerlink" title="Web Enumeration"></a>Web Enumeration</h2><p>After checking the visible application and finding no obvious path forward, the <code>X-Powered-By</code> header became the main lead:</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">X-Powered-By: pac4j-jwt/6.0.3</span><br></pre></td></tr></table></figure>
-	
-	</div>
-  <a type="button" href="/2026/05/31/2026-05-31-principal/#more" class="btn btn-default more">Read More</a>
-</div>
-
-		
 
 		</div>
 
@@ -676,7 +659,7 @@
 		<h4>Categories</h4>
 		<ul class="tag_box inline list-unstyled">
 		
-			<li><a href="/categories/cloud/">cloud<span>1</span></a></li>
+			<li><a href="/categories/cloud/">cloud<span>2</span></a></li>
 		
 			<li><a href="/categories/hackthebox/">hackthebox<span>7</span></a></li>
 		
@@ -699,35 +682,35 @@
 		<h4>Tag Cloud</h4>
 		<ul class="tag_box inline list-unstyled">		
 		
+			<li><a href="/tags/aws/">aws<span>2</span></a></li>
+		
 			<li><a href="/tags/dns/">dns<span>1</span></a></li>
 		
-			<li><a href="/tags/cloudgoat/">cloudgoat<span>1</span></a></li>
+			<li><a href="/tags/cloudgoat/">cloudgoat<span>2</span></a></li>
 		
-			<li><a href="/tags/labs/">labs<span>1</span></a></li>
-		
-			<li><a href="/tags/aws/">aws<span>1</span></a></li>
-		
-			<li><a href="/tags/portswigger/">portswigger<span>1</span></a></li>
+			<li><a href="/tags/web-security/">web-security<span>2</span></a></li>
 		
 			<li><a href="/tags/hardware/">hardware<span>1</span></a></li>
 		
-			<li><a href="/tags/guide/">guide<span>3</span></a></li>
+			<li><a href="/tags/reversing/">reversing<span>1</span></a></li>
+		
+			<li><a href="/tags/security/">security<span>6</span></a></li>
+		
+			<li><a href="/tags/walkthrough/">walkthrough<span>1</span></a></li>
 		
 			<li><a href="/tags/hackthebox/">hackthebox<span>7</span></a></li>
+		
+			<li><a href="/tags/opsec/">opsec<span>2</span></a></li>
 		
 			<li><a href="/tags/architecture/">architecture<span>1</span></a></li>
 		
 			<li><a href="/tags/tryhackme/">tryhackme<span>2</span></a></li>
 		
-			<li><a href="/tags/walkthrough/">walkthrough<span>1</span></a></li>
+			<li><a href="/tags/labs/">labs<span>1</span></a></li>
 		
-			<li><a href="/tags/reversing/">reversing<span>1</span></a></li>
+			<li><a href="/tags/portswigger/">portswigger<span>1</span></a></li>
 		
-			<li><a href="/tags/web-security/">web-security<span>2</span></a></li>
-		
-			<li><a href="/tags/security/">security<span>5</span></a></li>
-		
-			<li><a href="/tags/opsec/">opsec<span>2</span></a></li>
+			<li><a href="/tags/guide/">guide<span>3</span></a></li>
 		
 		 
 		</ul>
@@ -739,6 +722,10 @@
 <div class="widget">
   <h4>Recent Posts</h4>
   <ul class="entry list-unstyled">
+    
+      <li>
+        <a href="/2026/09/18/2026-09-18-ec2-ssrf/"  title="Writeup for CloudGoat&#39;s EC2 SSRF scenario." ><i class="fa fa-file-o"></i>CloudGoat - EC2 SSRF</a>
+      </li>
     
       <li>
         <a href="/2026/09/18/2026-09-18-rce-web-app/"  title="Writeup for CloudGoat&#39;s RCE WebApp." ><i class="fa fa-file-o"></i>CloudGoat - RCE WebApp</a>
@@ -754,10 +741,6 @@
     
       <li>
         <a href="/2026/08/13/2026-08-13-de-morgan/"  title="Turing Comeplete - De Morgan&#39;s law" ><i class="fa fa-file-o"></i>De Morgan&#39;s law</a>
-      </li>
-    
-      <li>
-        <a href="/2026/08/12/2026-08-12-nmap-opsec/"  title="A guide on nmap opsec from a redteam mindset." ><i class="fa fa-file-o"></i>RedTeam guide for nmap opsec</a>
       </li>
     
   </ul>
