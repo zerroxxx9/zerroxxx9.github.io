@@ -138,6 +138,87 @@
 <div class="row">
 	<div class="col-md-8">
 		<h3 class="title">
+			<a href="/2026/10/03/2026-10-03-email-security/" title="How email authentication and encryption work: SMTP, SPF, DKIM, DMARC, ARC, MTA-STS, DANE, S/MIME and PGP, including header analysis and practical commands.">Email Security: SPF, DKIM, DMARC &amp; Co.</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-10-03  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<h2 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h2><ul>
+<li>SMTP has <strong>no sender authentication</strong> built in. Everything that makes spoofing harder today was bolted on afterwards.</li>
+<li><strong>SPF</strong> checks whether the sending IP is allowed for the envelope domain. <strong>DKIM</strong> checks a signature. <strong>DMARC</strong> requires that one of the two aligns with the visible <code>From:</code> domain and defines what the receiver should do on failure.</li>
+<li><strong>MTA-STS</strong> and <strong>DANE</strong> protect the transport between servers, <strong>S&#x2F;MIME</strong> and <strong>PGP</strong> protect the content end-to-end.</li>
+</ul>
+<h2 id="The-Path-of-a-Mail"><a href="#The-Path-of-a-Mail" class="headerlink" title="The Path of a Mail"></a>The Path of a Mail</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">MUA ──587/465──▶ MSA/MTA ──25──▶ MTA (target, via MX lookup) ──▶ MDA ──143/993──▶ MUA</span><br><span class="line">(client)         (sender)                                        (mailbox)        (client)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>MUA</strong> (Mail User Agent): the mail client.</li>
+<li><strong>MSA</strong> (Mail Submission Agent): accepts mail from the client after authentication.</li>
+<li><strong>MTA</strong> (Mail Transfer Agent): relays mail between servers. It finds the destination via the <strong>MX record</strong> of the recipient’s domain.</li>
+<li><strong>MDA</strong> (Mail Delivery Agent): stores the mail in the mailbox.</li>
+</ul>
+<h2 id="Ports-and-Protocols"><a href="#Ports-and-Protocols" class="headerlink" title="Ports and Protocols"></a>Ports and Protocols</h2><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Protocol</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>25</code></td>
+<td>SMTP</td>
+<td>MTA↔MTA relay (server to server). Many ISPs and cloud providers block it for client submission, so it should not be used for that.</td>
+</tr>
+<tr>
+<td><code>587</code></td>
+<td>SMTP Submission + STARTTLS</td>
+<td>Client submits mail after authenticating. <em>Classic standard for submission.</em></td>
+</tr>
+<tr>
+<td><code>465</code></td>
+<td>SMTPS (implicit TLS)</td>
+<td>Submission with immediate TLS (no plaintext handshake). RFC 8314 prefers this variant.</td>
+</tr>
+<tr>
+<td><code>143 / 993</code></td>
+<td>IMAP &#x2F; IMAPS</td>
+<td>Mailbox access (mail stays stored on the server).</td>
+</tr>
+<tr>
+<td><code>110 / 995</code></td>
+<td>POP3 &#x2F; POP3S</td>
+<td>Mailbox access (usually download + delete).</td>
+</tr>
+</tbody></table>
+<h2 id="Envelope-vs-Header-From"><a href="#Envelope-vs-Header-From" class="headerlink" title="Envelope vs. Header-From"></a>Envelope vs. Header-From</h2><ul>
+<li><strong>SPF</strong> checks the envelope (<code>MAIL FROM</code>, or <code>HELO</code> as a fallback).</li>
+<li><strong>DKIM</strong> checks a cryptographic signature over headers and body.</li>
+<li><strong>DMARC</strong> ties both to the visible Header-From.</li>
+</ul>
+<blockquote>
+<p>The user only sees the Header-From, but SPF and DKIM initially check something else. Both sender fields can be chosen freely. Authentication only means that the claim can be verified against the DNS records of the respective domain.</p>
+</blockquote>
+	
+	</div>
+  <a type="button" href="/2026/10/03/2026-10-03-email-security/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
 			<a href="/2026/09/18/2026-09-18-ec2-ssrf/" title="Writeup for CloudGoat&#39;s EC2 SSRF scenario.">CloudGoat - EC2 SSRF</a>
 		</h3>
 		</div>
@@ -556,62 +637,6 @@
 </div>
 
 		
-			
-	
-	<!-- display as entry -->
-<div class="row">
-	<div class="col-md-8">
-		<h3 class="title">
-			<a href="/2026/06/04/2026-06-04-silentium/" title="Writeup for Silentium CTF.">Silentium - CTF Writeup</a>
-		</h3>
-		</div>
-	<div class="col-md-4">
-		<div class="date">post @ 2026-06-04  </div>
-		</div>
-	</div>
-	
-
-
-			<div class="entry">
-  <div class="row">
-	
-	
-		<h1 id="Silentium-CTF-Writeup"><a href="#Silentium-CTF-Writeup" class="headerlink" title="Silentium - CTF Writeup"></a>Silentium - CTF Writeup</h1><h2 id="Reconnaissance"><a href="#Reconnaissance" class="headerlink" title="Reconnaissance"></a>Reconnaissance</h2><p>A full TCP scan exposed SSH and an nginx web server. The web server redirected to the virtual host <code>silentium.htb</code>.</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -T4 -A -sS -sV -p- 10.129.9.0</span><br></pre></td></tr></table></figure>
-
-<table>
-<thead>
-<tr>
-<th>Port</th>
-<th>Service</th>
-<th>Version</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>22/tcp</code></td>
-<td>SSH</td>
-<td>OpenSSH 9.6p1 Ubuntu 3ubuntu13.15</td>
-<td>Ubuntu host</td>
-</tr>
-<tr>
-<td><code>80/tcp</code></td>
-<td>HTTP</td>
-<td>nginx 1.24.0</td>
-<td>Redirects to <code>silentium.htb</code></td>
-</tr>
-</tbody></table>
-<p>Virtual host enumeration revealed another application:</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">staging.silentium.htb</span><br></pre></td></tr></table></figure>
-
-<h2 id="Web-Enumeration"><a href="#Web-Enumeration" class="headerlink" title="Web Enumeration"></a>Web Enumeration</h2><p>The password reset flow on the staging host returned a useful backend error:</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Transaction is not started yet, start transaction before commiting or rolling it back</span><br></pre></td></tr></table></figure>
-	
-	</div>
-  <a type="button" href="/2026/06/04/2026-06-04-silentium/#more" class="btn btn-default more">Read More</a>
-</div>
-
-		
 
 		</div>
 
@@ -667,7 +692,7 @@
 		
 			<li><a href="/categories/portswigger/">portswigger<span>1</span></a></li>
 		
-			<li><a href="/categories/security/">security<span>4</span></a></li>
+			<li><a href="/categories/security/">security<span>5</span></a></li>
 		
 			<li><a href="/categories/tryhackme/">tryhackme<span>2</span></a></li>
 		
@@ -682,35 +707,39 @@
 		<h4>Tag Cloud</h4>
 		<ul class="tag_box inline list-unstyled">		
 		
-			<li><a href="/tags/dns/">dns<span>1</span></a></li>
+			<li><a href="/tags/hackthebox/">hackthebox<span>7</span></a></li>
 		
 			<li><a href="/tags/reversing/">reversing<span>1</span></a></li>
 		
-			<li><a href="/tags/tryhackme/">tryhackme<span>2</span></a></li>
+			<li><a href="/tags/portswigger/">portswigger<span>1</span></a></li>
+		
+			<li><a href="/tags/dns/">dns<span>1</span></a></li>
 		
 			<li><a href="/tags/opsec/">opsec<span>2</span></a></li>
 		
-			<li><a href="/tags/cloudgoat/">cloudgoat<span>2</span></a></li>
-		
-			<li><a href="/tags/guide/">guide<span>3</span></a></li>
-		
-			<li><a href="/tags/walkthrough/">walkthrough<span>1</span></a></li>
+			<li><a href="/tags/email/">email<span>1</span></a></li>
 		
 			<li><a href="/tags/web-security/">web-security<span>2</span></a></li>
 		
-			<li><a href="/tags/aws/">aws<span>2</span></a></li>
-		
-			<li><a href="/tags/hardware/">hardware<span>1</span></a></li>
-		
-			<li><a href="/tags/security/">security<span>6</span></a></li>
-		
-			<li><a href="/tags/architecture/">architecture<span>1</span></a></li>
+			<li><a href="/tags/guide/">guide<span>3</span></a></li>
 		
 			<li><a href="/tags/labs/">labs<span>1</span></a></li>
 		
-			<li><a href="/tags/hackthebox/">hackthebox<span>7</span></a></li>
+			<li><a href="/tags/architecture/">architecture<span>1</span></a></li>
 		
-			<li><a href="/tags/portswigger/">portswigger<span>1</span></a></li>
+			<li><a href="/tags/tryhackme/">tryhackme<span>2</span></a></li>
+		
+			<li><a href="/tags/security/">security<span>6</span></a></li>
+		
+			<li><a href="/tags/aws/">aws<span>2</span></a></li>
+		
+			<li><a href="/tags/phishing/">phishing<span>1</span></a></li>
+		
+			<li><a href="/tags/hardware/">hardware<span>1</span></a></li>
+		
+			<li><a href="/tags/walkthrough/">walkthrough<span>1</span></a></li>
+		
+			<li><a href="/tags/cloudgoat/">cloudgoat<span>2</span></a></li>
 		
 		 
 		</ul>
@@ -722,6 +751,10 @@
 <div class="widget">
   <h4>Recent Posts</h4>
   <ul class="entry list-unstyled">
+    
+      <li>
+        <a href="/2026/10/03/2026-10-03-email-security/"  title="How email authentication and encryption work: SMTP, SPF, DKIM, DMARC, ARC, MTA-STS, DANE, S/MIME and PGP, including header analysis and practical commands." ><i class="fa fa-file-o"></i>Email Security: SPF, DKIM, ...</a>
+      </li>
     
       <li>
         <a href="/2026/09/18/2026-09-18-ec2-ssrf/"  title="Writeup for CloudGoat&#39;s EC2 SSRF scenario." ><i class="fa fa-file-o"></i>CloudGoat - EC2 SSRF</a>
@@ -737,10 +770,6 @@
     
       <li>
         <a href="/2026/08/30/2026-08-30-redteam-opsec/"  title="Getting through recon clean is only step one. Most engagements don&#39;t get burned during scanning: they get burned later, during infra, C2, DNS, or just sloppy operator habits. In this post i try to cover some important steps to cover the next step of the previous started redteam opsec &#39;series&#39;." ><i class="fa fa-file-o"></i>General opsec for RedTeams</a>
-      </li>
-    
-      <li>
-        <a href="/2026/08/13/2026-08-13-de-morgan/"  title="Turing Comeplete - De Morgan&#39;s law" ><i class="fa fa-file-o"></i>De Morgan&#39;s law</a>
       </li>
     
   </ul>

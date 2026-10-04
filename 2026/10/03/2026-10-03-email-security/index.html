@@ -1,0 +1,722 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>Email Security: SPF, DKIM, DMARC &amp; Co. | zerrox&#39; security blog</title>
+  <meta name="author" content="zerrox9">
+  
+  <meta name="description" content="How email authentication and encryption work: SMTP, SPF, DKIM, DMARC, ARC, MTA-STS, DANE, S/MIME and PGP, including header analysis and practical commands.">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Email Security: SPF, DKIM, DMARC &amp; Co."/>
+  <meta property="og:site_name" content="zerrox&#39; security blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+    <link rel="alternative" href="/atom.xml" title="zerrox&#39; security blog" type="application/atom+xml">
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/prism.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-70812759-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-70812759-1');
+</script>
+
+
+
+
+
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/">
+	    Security Blog
+	  </a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/archives" title="All the articles.">
+			  <i class=""></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/categories" title="All the categories.">
+			  <i class=""></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/tags" title="All the tags.">
+			  <i class=""></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/about" title="About me.">
+			  <i class=""></i>About
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/atom.xml" title="Subscribe me.">
+			  <i class=""></i>RSS
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+  <div class="container">
+  	<div class="content">
+    	 
+
+
+	
+		<div class="page-header">
+			<h1> Email Security: SPF, DKIM, DMARC &amp; Co.</h1>
+		</div>
+	
+
+
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  
+		 <div class="alert alert-success description">
+			<i class="fa fa-info-circle"></i> How email authentication and encryption work: SMTP, SPF, DKIM, DMARC, ARC, MTA-STS, DANE, S/MIME and PGP, including header analysis and practical commands.
+		 </div> <!-- alert -->
+	  		
+
+	  <h2 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h2><ul>
+<li>SMTP has <strong>no sender authentication</strong> built in. Everything that makes spoofing harder today was bolted on afterwards.</li>
+<li><strong>SPF</strong> checks whether the sending IP is allowed for the envelope domain. <strong>DKIM</strong> checks a signature. <strong>DMARC</strong> requires that one of the two aligns with the visible <code>From:</code> domain and defines what the receiver should do on failure.</li>
+<li><strong>MTA-STS</strong> and <strong>DANE</strong> protect the transport between servers, <strong>S&#x2F;MIME</strong> and <strong>PGP</strong> protect the content end-to-end.</li>
+</ul>
+<h2 id="The-Path-of-a-Mail"><a href="#The-Path-of-a-Mail" class="headerlink" title="The Path of a Mail"></a>The Path of a Mail</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">MUA ──587/465──▶ MSA/MTA ──25──▶ MTA (target, via MX lookup) ──▶ MDA ──143/993──▶ MUA</span><br><span class="line">(client)         (sender)                                        (mailbox)        (client)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>MUA</strong> (Mail User Agent): the mail client.</li>
+<li><strong>MSA</strong> (Mail Submission Agent): accepts mail from the client after authentication.</li>
+<li><strong>MTA</strong> (Mail Transfer Agent): relays mail between servers. It finds the destination via the <strong>MX record</strong> of the recipient’s domain.</li>
+<li><strong>MDA</strong> (Mail Delivery Agent): stores the mail in the mailbox.</li>
+</ul>
+<h2 id="Ports-and-Protocols"><a href="#Ports-and-Protocols" class="headerlink" title="Ports and Protocols"></a>Ports and Protocols</h2><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Protocol</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>25</code></td>
+<td>SMTP</td>
+<td>MTA↔MTA relay (server to server). Many ISPs and cloud providers block it for client submission, so it should not be used for that.</td>
+</tr>
+<tr>
+<td><code>587</code></td>
+<td>SMTP Submission + STARTTLS</td>
+<td>Client submits mail after authenticating. <em>Classic standard for submission.</em></td>
+</tr>
+<tr>
+<td><code>465</code></td>
+<td>SMTPS (implicit TLS)</td>
+<td>Submission with immediate TLS (no plaintext handshake). RFC 8314 prefers this variant.</td>
+</tr>
+<tr>
+<td><code>143 / 993</code></td>
+<td>IMAP &#x2F; IMAPS</td>
+<td>Mailbox access (mail stays stored on the server).</td>
+</tr>
+<tr>
+<td><code>110 / 995</code></td>
+<td>POP3 &#x2F; POP3S</td>
+<td>Mailbox access (usually download + delete).</td>
+</tr>
+</tbody></table>
+<h2 id="Envelope-vs-Header-From"><a href="#Envelope-vs-Header-From" class="headerlink" title="Envelope vs. Header-From"></a>Envelope vs. Header-From</h2><ul>
+<li><strong>SPF</strong> checks the envelope (<code>MAIL FROM</code>, or <code>HELO</code> as a fallback).</li>
+<li><strong>DKIM</strong> checks a cryptographic signature over headers and body.</li>
+<li><strong>DMARC</strong> ties both to the visible Header-From.</li>
+</ul>
+<blockquote>
+<p>The user only sees the Header-From, but SPF and DKIM initially check something else. Both sender fields can be chosen freely. Authentication only means that the claim can be verified against the DNS records of the respective domain.</p>
+</blockquote>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"># Client → Server (simplified, with server replies)</span><br><span class="line">S: 220 mx.target.example ESMTP</span><br><span class="line">C: EHLO mail.sender.example</span><br><span class="line">S: 250-mx.target.example</span><br><span class="line">S: 250 STARTTLS</span><br><span class="line">C: MAIL FROM:&lt;bounce@sender.example&gt;   # ← envelope sender (SPF looks HERE)</span><br><span class="line">S: 250 2.1.0 Ok</span><br><span class="line">C: RCPT TO:&lt;victim@target.example&gt;</span><br><span class="line">S: 250 2.1.5 Ok</span><br><span class="line">C: DATA</span><br><span class="line">S: 354 End data with &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;</span><br><span class="line">C: From: &quot;Boss&quot; &lt;boss@company.example&gt; # ← Header-From (the user SEES this)</span><br><span class="line">C: To: victim@target.example</span><br><span class="line">C: Subject: Urgent wire transfer</span><br><span class="line">C: Date: Sat, 03 Oct 2026 21:00:00 +0200</span><br><span class="line">C: Message-ID: &lt;abc123@sender.example&gt;</span><br><span class="line">C:                                     # ← blank line separates header from body</span><br><span class="line">C: Please transfer ...</span><br><span class="line">C: .                                   # single dot = end of message</span><br><span class="line">S: 250 2.0.0 Ok: queued</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="Relay-Types"><a href="#Relay-Types" class="headerlink" title="Relay Types"></a>Relay Types</h2><ul>
+<li><strong>Open relay:</strong> accepts mail from <em>anyone</em> to <em>anyone</em>, without auth. Historically abused by spammers, practically extinct today and blocklisted immediately (e.g. Spamhaus). An accidental open relay is a configuration error with total reputation damage.</li>
+<li><strong>Authenticated relay &#x2F; smart host:</strong> only relays after login. Standard for outgoing submission.</li>
+<li><strong>Backup MX &#x2F; secondary:</strong> accepts mail when the primary MX is offline and delivers it later. Risk: the backup MX often does not know the valid recipients, so it accepts everything and later produces <strong>backscatter</strong> (bounces to forged senders). Spammers also deliberately prefer it because it often filters less strictly.</li>
+</ul>
+<h3 id="Further-Reputation-Factors"><a href="#Further-Reputation-Factors" class="headerlink" title="Further Reputation Factors"></a>Further Reputation Factors</h3><ul>
+<li><strong>Reverse DNS (PTR) &#x2F; FCrDNS:</strong> the IP should point to a hostname that resolves back to the same IP.</li>
+<li><strong>DNSBLs:</strong> blocklists for IPs and domains that receivers query when accepting mail.</li>
+<li><strong>Greylisting:</strong> the receiver temporarily rejects unknown senders (<code>4xx</code>). Real MTAs retry, simple spam bots often don’t.</li>
+</ul>
+<hr>
+<h2 id="SPF-Sender-Policy-Framework"><a href="#SPF-Sender-Policy-Framework" class="headerlink" title="SPF (Sender Policy Framework)"></a>SPF (Sender Policy Framework)</h2><p>SPF answers exactly one question: “May <em>this IP</em> send mail for <em>this domain</em> (in the envelope)?”</p>
+<h3 id="How-SPF-Works"><a href="#How-SPF-Works" class="headerlink" title="How SPF Works"></a>How SPF Works</h3><ol>
+<li>The domain publishes a <strong>DNS TXT record</strong> with a list of allowed sending IPs&#x2F;hosts.</li>
+<li>On receipt, the receiver takes the <strong>envelope domain</strong> (<code>MAIL FROM</code>, or HELO) and looks up its SPF record.</li>
+<li>It compares the <strong>connecting IP</strong> with the policy and evaluates <code>pass</code>, <code>fail</code>, <code>softfail</code>, <code>neutral</code>, <code>none</code>, <code>permerror</code> or <code>temperror</code>.</li>
+</ol>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># TXT @ company.example</span><br><span class="line">v=spf1 mx a:mail.company.example ip4:192.0.2.0/24 include:_spf.google.com -all</span><br></pre></td></tr></table></figure>
+
+<p>The record is evaluated from left to right, the first match wins:</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>v=spf1</code></td>
+<td>version tag</td>
+</tr>
+<tr>
+<td><code>mx</code></td>
+<td>the domain’s MX hosts may send</td>
+</tr>
+<tr>
+<td><code>a:mail.company.example</code></td>
+<td>the IPs of this host may send</td>
+</tr>
+<tr>
+<td><code>ip4:192.0.2.0/24</code></td>
+<td>this IPv4 range may send (<code>ip6:</code> works the same way)</td>
+</tr>
+<tr>
+<td><code>include:_spf.google.com</code></td>
+<td>additionally, the SPF policy of this domain applies</td>
+</tr>
+<tr>
+<td><code>-all</code></td>
+<td>everything else: <code>fail</code> (reject)</td>
+</tr>
+</tbody></table>
+<h3 id="Qualifiers"><a href="#Qualifiers" class="headerlink" title="Qualifiers"></a>Qualifiers</h3><table>
+<thead>
+<tr>
+<th>Qualifier</th>
+<th>Result</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>+</code></td>
+<td><code>pass</code></td>
+<td>default if no qualifier is given</td>
+</tr>
+<tr>
+<td><code>-</code></td>
+<td><code>fail</code></td>
+<td>not allowed, reject</td>
+</tr>
+<tr>
+<td><code>~</code></td>
+<td><code>softfail</code></td>
+<td>probably not allowed, accept but mark</td>
+</tr>
+<tr>
+<td><code>?</code></td>
+<td><code>neutral</code></td>
+<td>no statement</td>
+</tr>
+</tbody></table>
+<p>A <code>+all</code> allows every sender, in practice this is a configuration error.</p>
+<h3 id="The-10-Lookup-Limit"><a href="#The-10-Lookup-Limit" class="headerlink" title="The 10-Lookup Limit"></a>The 10-Lookup Limit</h3><p>During evaluation SPF may cause at most <strong>10 DNS lookups</strong>. <code>include</code>, <code>a</code>, <code>mx</code>, <code>ptr</code>, <code>exists</code> and <code>redirect</code> count. <code>ip4</code>, <code>ip6</code> and <code>all</code> don’t. Exceeding the limit → <code>permerror</code>, and the policy no longer applies reliably. In addition, at most <strong>2 “void lookups”</strong> (queries without a result) are allowed.</p>
+<p>Too many <code>include:</code> chains exceed the limit quickly → the solution is “SPF flattening” (IPs instead of includes). The downside: if the provider changes its IPs, the flattened record becomes stale.</p>
+<blockquote>
+<p><code>ptr</code> is deprecated according to RFC 7208 (“SHOULD NOT”) and doesn’t belong in new records.</p>
+</blockquote>
+<h3 id="SPF-Alone-Is-Not-Enough"><a href="#SPF-Alone-Is-Not-Enough" class="headerlink" title="SPF Alone Is Not Enough"></a>SPF Alone Is Not Enough</h3><ul>
+<li>SPF checks <strong>only the envelope</strong>, not the visible <code>From:</code>. An attacker can display <code>From: boss@company.example</code> and still get an SPF <code>pass</code> for their <em>own</em> envelope domain.</li>
+<li>SPF <strong>breaks on forwarding</strong>: when an intermediate server forwards the mail, the connecting IP changes → SPF fails at the destination (remedy: SRS, the Sender Rewriting Scheme).</li>
+</ul>
+<hr>
+<h2 id="DKIM-DomainKeys-Identified-Mail"><a href="#DKIM-DomainKeys-Identified-Mail" class="headerlink" title="DKIM (DomainKeys Identified Mail)"></a>DKIM (DomainKeys Identified Mail)</h2><h3 id="The-Principle-Signing-with-Public-Key-Cryptography"><a href="#The-Principle-Signing-with-Public-Key-Cryptography" class="headerlink" title="The Principle: Signing with Public-Key Cryptography"></a>The Principle: Signing with Public-Key Cryptography</h3><ol>
+<li>The sending server computes a <strong>body hash</strong> and signs a defined set of <strong>headers</strong> with its <strong>private key</strong>.</li>
+<li>The result ends up in the mail as a <code>DKIM-Signature:</code> header.</li>
+<li>The <strong>public key</strong> lives in DNS under <code>&lt;selector&gt;._domainkey.&lt;domain&gt;</code>.</li>
+<li>The receiver fetches the public key and verifies signature and body hash → <code>pass</code> or <code>fail</code>.</li>
+</ol>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># The header in the mail</span><br><span class="line">DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;</span><br><span class="line">  d=company.example; s=mail2024;</span><br><span class="line">  h=from:to:subject:date;</span><br><span class="line">  bh=47DEQpj8HBSa...=;            # body hash</span><br><span class="line">  b=dzdVyOfAKCdL...=              # signature over the h headers</span><br><span class="line"></span><br><span class="line"># Public key in DNS: mail2024._domainkey.company.example (TXT)</span><br><span class="line">v=DKIM1; k=rsa; p=MIIBIjANBgkqhki...AQAB   # truncated, a real key is ~400 characters</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>a</code></td>
+<td>Algorithm. <code>rsa-sha256</code> is common, <code>ed25519-sha256</code> (RFC 8463) is rarely supported.</td>
+</tr>
+<tr>
+<td><code>c</code></td>
+<td>Canonicalization (header&#x2F;body). <code>relaxed</code> tolerates whitespace changes in transit.</td>
+</tr>
+<tr>
+<td><code>d</code></td>
+<td>signing domain (checked against <code>From:</code> by DMARC)</td>
+</tr>
+<tr>
+<td><code>s</code></td>
+<td>selector, determines the DNS name of the key</td>
+</tr>
+<tr>
+<td><code>h</code></td>
+<td>signed headers. <code>from</code> <strong>must</strong> be included.</td>
+</tr>
+<tr>
+<td><code>bh</code></td>
+<td>hash of the body</td>
+</tr>
+<tr>
+<td><code>b</code></td>
+<td>the signature itself</td>
+</tr>
+</tbody></table>
+<h3 id="In-Practice"><a href="#In-Practice" class="headerlink" title="In Practice"></a>In Practice</h3><ul>
+<li>Use at least <strong>2048-bit</strong> RSA (1024 bit is considered too weak).</li>
+<li>Selectors allow <strong>key rotation</strong>: publish a new selector, switch over, remove the old one later.</li>
+<li><code>t=y</code> in the DNS record marks a key as “test mode”; receivers should then not treat failures harshly.</li>
+</ul>
+<h3 id="Limits-and-Weaknesses"><a href="#Limits-and-Weaknesses" class="headerlink" title="Limits and Weaknesses"></a>Limits and Weaknesses</h3><ul>
+<li>DKIM only says “the domain <code>d=</code> signed this”. It does <strong>not</strong> enforce that <code>d=</code> matches the visible <code>From:</code>. Only DMARC makes that connection.</li>
+<li>Mailing lists that change subject&#x2F;body break the signature (→ ARC).</li>
+<li><strong>DKIM replay:</strong> a validly signed mail can be resent unchanged by an attacker to arbitrary recipients. The signature stays valid, and the reputation of the signing domain is abused.</li>
+<li>The optional <code>l=</code> tag (body length) allows appending content beyond the signed length. It should not be used.</li>
+</ul>
+<hr>
+<h2 id="DMARC"><a href="#DMARC" class="headerlink" title="DMARC"></a>DMARC</h2><p>DMARC is the glue: it requires that SPF <em>or</em> DKIM not only pass, but also be <em>aligned</em> with the <strong>visible From:</strong> (alignment), and it tells the receiver what to do on failure. <strong>One</strong> passing, aligned mechanism is enough for a DMARC <code>pass</code>.</p>
+<p>A <code>pass</code> for SPF&#x2F;DKIM is of little use if it refers to a foreign domain. DMARC therefore requires <strong>identifier alignment</strong>:</p>
+<ul>
+<li><strong>SPF alignment:</strong> the envelope domain (<code>MAIL FROM</code>) matches the <code>From:</code> domain.</li>
+<li><strong>DKIM alignment:</strong> the <code>d=</code> of the valid signature matches the <code>From:</code> domain.</li>
+</ul>
+<p>Mode per check:</p>
+<ul>
+<li><strong>relaxed</strong> (default): the organizational domain must match (<code>sub.company.example</code> ≈ <code>company.example</code>).</li>
+<li><strong>strict</strong>: exact match required.</li>
+</ul>
+<h3 id="The-DMARC-Record"><a href="#The-DMARC-Record" class="headerlink" title="The DMARC Record"></a>The DMARC Record</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># TXT @ _dmarc.company.example</span><br><span class="line">v=DMARC1; p=reject; sp=reject; pct=100; adkim=s; aspf=r;</span><br><span class="line">  rua=mailto:dmarc-reports@company.example</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>p</code></td>
+<td>policy for the domain: <code>none</code>, <code>quarantine</code> or <code>reject</code></td>
+</tr>
+<tr>
+<td><code>sp</code></td>
+<td>policy for subdomains (default: same as <code>p</code>)</td>
+</tr>
+<tr>
+<td><code>pct</code></td>
+<td>percentage of mail the policy is applied to</td>
+</tr>
+<tr>
+<td><code>adkim</code></td>
+<td>DKIM alignment: <code>r</code> (relaxed) or <code>s</code> (strict)</td>
+</tr>
+<tr>
+<td><code>aspf</code></td>
+<td>SPF alignment: <code>r</code> (relaxed) or <code>s</code> (strict)</td>
+</tr>
+<tr>
+<td><code>rua</code></td>
+<td>address for aggregate reports (XML, daily)</td>
+</tr>
+<tr>
+<td><code>ruf</code></td>
+<td>address for forensic reports of individual failures (rarely supported)</td>
+</tr>
+</tbody></table>
+<h3 id="Rollout"><a href="#Rollout" class="headerlink" title="Rollout"></a>Rollout</h3><ol>
+<li><code>p=none</code> with <code>rua=</code>: only observe and use the reports to find out which systems legitimately send for the domain.</li>
+<li>Fix SPF and DKIM for all legitimate senders (newsletter tool, CRM, ticket system …).</li>
+<li><code>p=quarantine</code>, first with a low <code>pct</code>, then increase it.</li>
+<li><code>p=reject</code> for full enforcement.</li>
+</ol>
+<p>A domain with <code>p=reject</code> can no longer credibly be spoofed <em>directly</em> in <code>From:</code>. Attackers therefore switch to <strong>lookalike domains</strong>, <strong>display-name spoofing</strong> or compromised legitimate accounts. These patterns are covered in the section <a href="#Detecting-Attacks">Detecting Attacks</a>.</p>
+<h3 id="BIMI"><a href="#BIMI" class="headerlink" title="BIMI"></a>BIMI</h3><p>With <code>p=quarantine</code> or <code>p=reject</code>, a domain can additionally use <strong>BIMI</strong>: mail clients then show the brand logo next to the mail. This requires a DNS record <code>default._bimi.&lt;domain&gt;</code>, an SVG logo and, with many providers, a Verified Mark Certificate (VMC).</p>
+<hr>
+<h2 id="ARC-Authenticated-Received-Chain"><a href="#ARC-Authenticated-Received-Chain" class="headerlink" title="ARC (Authenticated Received Chain)"></a>ARC (Authenticated Received Chain)</h2><p>Mailing lists and forwarding change mail (subject prefix, footer, new IP) and thereby break SPF and DKIM. DMARC then fails even though the mail was originally legitimate. ARC (RFC 8617) solves this by having an intermediate server “freeze” the state.</p>
+<p>A trusted intermediate server adds three headers when passing the mail on. All three carry an instance number <code>i=</code> (1 for the first hop, 2 for the second, and so on):</p>
+<table>
+<thead>
+<tr>
+<th>Header</th>
+<th>Function</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ARC-Authentication-Results</code> (AAR)</td>
+<td>Records what SPF&#x2F;DKIM&#x2F;DMARC looked like <em>before</em> the modification.</td>
+</tr>
+<tr>
+<td><code>ARC-Message-Signature</code> (AMS)</td>
+<td>Signature over the message as it enters this hop (DKIM-like).</td>
+</tr>
+<tr>
+<td><code>ARC-Seal</code> (AS)</td>
+<td>Signs the ARC header chain itself and links it to the previous hop.</td>
+</tr>
+</tbody></table>
+<p>Important: a valid ARC chain only proves that the hops passed the mail on this way. Whether the receiver believes it is decided by the receiver itself, based on a <strong>list of trusted sealers</strong>. ARC headers set by an unknown server are worthless.</p>
+<hr>
+<h2 id="Encryption"><a href="#Encryption" class="headerlink" title="Encryption"></a>Encryption</h2><h3 id="A-Transport-hop-by-hop"><a href="#A-Transport-hop-by-hop" class="headerlink" title="A) Transport (hop-by-hop)"></a>A) Transport (hop-by-hop)</h3><ul>
+<li><strong>STARTTLS:</strong> starts in plaintext and opportunistically <em>upgrades</em> to TLS. Problem: <strong>STARTTLS stripping</strong>. A man-in-the-middle removes the TLS announcement and the connection stays in plaintext.</li>
+<li><strong>Implicit TLS &#x2F; SMTPS (465):</strong> TLS immediately, no plaintext window.</li>
+<li><strong>MTA-STS (RFC 8461):</strong> publishes via an HTTPS policy that incoming connections should <em>enforce</em> TLS → prevents downgrade for domains that publish it.<ul>
+<li>DNS record: <code>_mta-sts.company.example TXT &quot;v=STSv1; id=20261003T000000&quot;</code></li>
+<li>Policy file: <code>https://mta-sts.company.example/.well-known/mta-sts.txt</code> with <code>mode:</code> (<code>none</code>, <code>testing</code>, <code>enforce</code>), <code>mx:</code> and <code>max_age:</code></li>
+<li>Recommended rollout: <code>testing</code> first, then <code>enforce</code>.</li>
+</ul>
+</li>
+<li><strong>DANE (RFC 7672; TLSA records + DNSSEC):</strong> “pins” the server certificate in DNS. Prevents downgrade&#x2F;MitM, but requires DNSSEC.</li>
+<li><strong>TLS-RPT (RFC 8460):</strong> reporting channel for failed or non-enforced TLS connections. Enabled via <code>_smtp._tls.company.example TXT &quot;v=TLSRPTv1; rua=mailto:tls-reports@company.example&quot;</code>.</li>
+</ul>
+<h3 id="B-End-to-End-E2E"><a href="#B-End-to-End-E2E" class="headerlink" title="B) End-to-End (E2E)"></a>B) End-to-End (E2E)</h3><table>
+<thead>
+<tr>
+<th></th>
+<th>S&#x2F;MIME</th>
+<th>PGP &#x2F; OpenPGP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Trust model</td>
+<td>X.509 + certificate authorities (CA)</td>
+<td>Web of Trust &#x2F; manual key verification</td>
+</tr>
+<tr>
+<td>Adoption</td>
+<td>Enterprise, Outlook world</td>
+<td>Tech&#x2F;security community, GnuPG</td>
+</tr>
+<tr>
+<td>Setup</td>
+<td>can be rolled out centrally</td>
+<td>decentralized, more effort for users</td>
+</tr>
+<tr>
+<td>Key discovery</td>
+<td>directory services, certificate in signed mails</td>
+<td>keyservers, WKD (Web Key Directory), Autocrypt</td>
+</tr>
+</tbody></table>
+<p>Shared limits:</p>
+<ul>
+<li><strong>Metadata is not encrypted:</strong> sender, recipient, timestamp and usually the subject are visible.</li>
+<li><strong>No forward secrecy:</strong> if the private key is compromised later, archived mails can be decrypted retroactively.</li>
+<li>Server-side spam&#x2F;malware scanning cannot see the content.</li>
+</ul>
+<p>Rule of thumb: in companies with a central PKI, S&#x2F;MIME is more practical; in technical circles and for individuals, PGP is used more often.</p>
+<hr>
+<h2 id="Detecting-Attacks"><a href="#Detecting-Attacks" class="headerlink" title="Detecting Attacks"></a>Detecting Attacks</h2><h3 id="Reading-Headers"><a href="#Reading-Headers" class="headerlink" title="Reading Headers"></a>Reading Headers</h3><p>When analyzing a suspicious mail, these headers are worth a look (read from bottom to top, the bottom-most <code>Received:</code> is the first hop):</p>
+<table>
+<thead>
+<tr>
+<th>Header</th>
+<th>What to look for</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Received</code></td>
+<td>Path of the mail, IPs and hostnames. Only hops of your own provider are trustworthy.</td>
+</tr>
+<tr>
+<td><code>Authentication-Results</code></td>
+<td><code>spf=</code>, <code>dkim=</code>, <code>dmarc=</code> of the receiving server (only trust your own server)</td>
+</tr>
+<tr>
+<td><code>Return-Path</code></td>
+<td>Envelope sender that SPF was checked against</td>
+</tr>
+<tr>
+<td><code>From</code> vs. <code>Reply-To</code></td>
+<td>If <code>Reply-To</code> points to a different domain, that is a classic BEC indicator</td>
+</tr>
+<tr>
+<td><code>Message-ID</code></td>
+<td>The domain often doesn’t match the claimed sender</td>
+</tr>
+</tbody></table>
+<h3 id="Typical-Attack-Patterns"><a href="#Typical-Attack-Patterns" class="headerlink" title="Typical Attack Patterns"></a>Typical Attack Patterns</h3><ul>
+<li><strong>Lookalike and homograph domains:</strong> <code>company-example.com</code>, <code>cömpany.example</code> (Unicode), <code>rn</code> instead of <code>m</code>. These domains can have their own SPF&#x2F;DKIM&#x2F;DMARC with <code>pass</code>.</li>
+<li><strong>Display-name spoofing:</strong> <code>&quot;Boss Company&quot; &lt;random@gmail.example&gt;</code>. Many clients only show the name, especially on mobile.</li>
+<li><strong>BEC (Business Email Compromise):</strong> fraud via forged or hijacked boss&#x2F;supplier mail, e.g. with changed bank details. It often needs no malware.</li>
+<li><strong>Compromised legitimate accounts:</strong> mail comes from the real domain, everything is <code>pass</code>. Only behavioral and content analysis plus MFA help here.</li>
+<li><strong>Direct spoofing</strong> of a domain without a DMARC policy or with <code>p=none</code>.</li>
+</ul>
+<h3 id="In-Practice-Checking-and-Testing-Records"><a href="#In-Practice-Checking-and-Testing-Records" class="headerlink" title="In Practice: Checking and Testing Records"></a>In Practice: Checking and Testing Records</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Query records</span></span><br><span class="line">dig +short MX company.example</span><br><span class="line">dig +short TXT company.example                     <span class="comment"># SPF</span></span><br><span class="line">dig +short TXT _dmarc.company.example              <span class="comment"># DMARC</span></span><br><span class="line">dig +short TXT mail2024._domainkey.company.example <span class="comment"># DKIM (selector from the mail)</span></span><br><span class="line">dig +short TXT _mta-sts.company.example            <span class="comment"># MTA-STS</span></span><br><span class="line">dig +short TXT _smtp._tls.company.example          <span class="comment"># TLS-RPT</span></span><br><span class="line">dig +short TLSA _25._tcp.mx.company.example        <span class="comment"># DANE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Test STARTTLS and certificate</span></span><br><span class="line">openssl s_client -starttls smtp -connect mx.company.example:25 -servername mx.company.example</span><br><span class="line"></span><br><span class="line"><span class="comment"># Test mail with freely chosen envelope and header (only against your own systems!)</span></span><br><span class="line">swaks --to <span class="built_in">test</span>@target.example --from bounce@sender.example \</span><br><span class="line">      --h-From <span class="string">&#x27;&quot;Boss&quot; &lt;boss@company.example&gt;&#x27;</span> --server mx.target.example</span><br></pre></td></tr></table></figure>
+
+<p>Other useful tools: MXToolbox, mail-tester.com and Google Postmaster Tools. DMARC aggregate reports can be analyzed with tools like <code>parsedmarc</code>.</p>
+<blockquote>
+<p>Only send test mails with a forged sender against your own domains and servers, or with explicit permission.</p>
+</blockquote>
+<hr>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><table>
+<thead>
+<tr>
+<th>Mechanism</th>
+<th>Protects against</th>
+<th>Weakness</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SPF</td>
+<td>sending from unauthorized IPs</td>
+<td>checks only the envelope, breaks on forwarding</td>
+</tr>
+<tr>
+<td>DKIM</td>
+<td>tampering with content and headers</td>
+<td>no link to <code>From:</code>, replay possible</td>
+</tr>
+<tr>
+<td>DMARC</td>
+<td>spoofing of your own <code>From:</code> domain</td>
+<td>no effect against lookalike domains</td>
+</tr>
+<tr>
+<td>ARC</td>
+<td>DMARC failures caused by mailing lists</td>
+<td>requires trust in sealers</td>
+</tr>
+<tr>
+<td>MTA-STS&#x2F;DANE</td>
+<td>downgrade and MitM on the transport path</td>
+<td>only effective if both sides support it</td>
+</tr>
+<tr>
+<td>S&#x2F;MIME&#x2F;PGP</td>
+<td>reading and forging the content</td>
+<td>metadata exposed, laborious key management</td>
+</tr>
+</tbody></table>
+<p>Recommendation for your own domain: set up SPF + DKIM (2048 bit), start DMARC with <code>p=none</code> and reports, and tighten step by step up to <code>p=reject</code>. Then add MTA-STS and TLS-RPT.</p>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul>
+<li>RFC 5321 – SMTP</li>
+<li>RFC 7208 – SPF</li>
+<li>RFC 6376 – DKIM, RFC 8463 – Ed25519 for DKIM</li>
+<li>RFC 7489 – DMARC</li>
+<li>RFC 8617 – ARC</li>
+<li>RFC 8461 – MTA-STS, RFC 8460 – TLS-RPT</li>
+<li>RFC 7672 – DANE for SMTP</li>
+<li>RFC 8314 – TLS for mail submission and access</li>
+</ul>
+
+	  <div class="article-footer-copyright">
+
+    本博客采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议(CC BY-NC-SA 4.0) 发布.</a>
+</div>
+
+	</div>
+
+	
+	
+	<div>
+  	<center>
+
+	<div class="pagination">
+
+    
+    
+    <a type="button" class="btn btn-default disabled"><i class="fa fa-arrow-circle-o-left"></i>Prev</a>
+    
+
+    <a href="/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
+    
+    <a href="/2026/09/18/2026-09-18-ec2-ssrf/" type="button" class="btn btn-default ">Next<i
+                class="fa fa-arrow-circle-o-right"></i></a>
+    
+
+    
+</div>
+
+
+    </center>
+	</div>
+	
+	<!-- comment -->
+	<!--
+<section id="comment">
+    <h2 class="title">Comments</h2>
+
+    
+</section>
+
+-->
+	
+	
+	
+	</div> <!-- col-md-9/col-md-12 -->
+
+
+	
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
+
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2026-10-03 
+	</div>
+	
+
+	<!-- categories -->
+    
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#categorys"><i class="fa fa-folder"></i></a>	
+    <ul id="categorys" class="tag_box list-unstyled collapse in">
+          
+  <li>
+    <li><a href="/categories/security/">security<span>5</span></a></li>
+  </li>
+
+    </ul>
+	</div>
+	
+
+	<!-- tags -->
+	
+	<div class="meta-widget">
+	<a data-toggle="collapse" data-target="#tags"><i class="fa fa-tags"></i></a>		  
+    <ul id="tags" class="tag_box list-unstyled collapse in">	  
+	    
+  <li><a href="/tags/email/">email<span>1</span></a></li> <li><a href="/tags/phishing/">phishing<span>1</span></a></li>
+    </ul>
+	</div>
+		
+
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+		
+
+	</div>
+	
+		
+
+</div><!-- row -->
+
+<!--
+ -->
+
+
+
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  
+  &copy; 2026 zerrox9's Blog
+  
+      powered by <a href="http://hexo.io/" target="_blank">Hexo</a>.Theme <a href="https://github.com/Ares-X/hexo-theme-freemind.bithack" target="_blank">freemind.bithack</a>  
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+</body>
+   </html>

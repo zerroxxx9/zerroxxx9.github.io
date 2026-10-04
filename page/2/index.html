@@ -138,6 +138,62 @@
 <div class="row">
 	<div class="col-md-8">
 		<h3 class="title">
+			<a href="/2026/06/04/2026-06-04-silentium/" title="Writeup for Silentium CTF.">Silentium - CTF Writeup</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-06-04  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="Silentium-CTF-Writeup"><a href="#Silentium-CTF-Writeup" class="headerlink" title="Silentium - CTF Writeup"></a>Silentium - CTF Writeup</h1><h2 id="Reconnaissance"><a href="#Reconnaissance" class="headerlink" title="Reconnaissance"></a>Reconnaissance</h2><p>A full TCP scan exposed SSH and an nginx web server. The web server redirected to the virtual host <code>silentium.htb</code>.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -T4 -A -sS -sV -p- 10.129.9.0</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Service</th>
+<th>Version</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>22/tcp</code></td>
+<td>SSH</td>
+<td>OpenSSH 9.6p1 Ubuntu 3ubuntu13.15</td>
+<td>Ubuntu host</td>
+</tr>
+<tr>
+<td><code>80/tcp</code></td>
+<td>HTTP</td>
+<td>nginx 1.24.0</td>
+<td>Redirects to <code>silentium.htb</code></td>
+</tr>
+</tbody></table>
+<p>Virtual host enumeration revealed another application:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">staging.silentium.htb</span><br></pre></td></tr></table></figure>
+
+<h2 id="Web-Enumeration"><a href="#Web-Enumeration" class="headerlink" title="Web Enumeration"></a>Web Enumeration</h2><p>The password reset flow on the staging host returned a useful backend error:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Transaction is not started yet, start transaction before commiting or rolling it back</span><br></pre></td></tr></table></figure>
+	
+	</div>
+  <a type="button" href="/2026/06/04/2026-06-04-silentium/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
 			<a href="/2026/05/31/2026-05-31-principal/" title="Writeup for Principal CTF.">Principal - CTF Writeup</a>
 		</h3>
 		</div>
@@ -353,35 +409,6 @@
 <div class="row">
 	<div class="col-md-8">
 		<h3 class="title">
-			<a href="/2026/05/01/2026-05-01-welcome/" title="A starter post for TryHackMe-related writeups and notes.">Welcome to TryHackMe Notes</a>
-		</h3>
-		</div>
-	<div class="col-md-4">
-		<div class="date">post @ 2026-05-01  </div>
-		</div>
-	</div>
-	
-
-
-			<div class="entry">
-  <div class="row">
-	
-	
-		<p>This category is for my <strong>TryHackMe</strong> notes, walkthroughs, and learning progress.</p>
-<p>Future posts here can include room notes, takeaways, and short writeups.</p>
-
-	
-	</div>
-  <a type="button" href="/2026/05/01/2026-05-01-welcome/#more" class="btn btn-default more">Read More</a>
-</div>
-
-		
-			
-	
-	<!-- display as entry -->
-<div class="row">
-	<div class="col-md-8">
-		<h3 class="title">
 			<a href="/2026/05/01/2026-05-01-welcome-portswigger/" title="A starter post for PortSwigger Academy notes and web security practice.">Welcome to PortSwigger Notes</a>
 		</h3>
 		</div>
@@ -402,6 +429,35 @@
 	
 	</div>
   <a type="button" href="/2026/05/01/2026-05-01-welcome-portswigger/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/2026/05/01/2026-05-01-welcome/" title="A starter post for TryHackMe-related writeups and notes.">Welcome to TryHackMe Notes</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-05-01  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<p>This category is for my <strong>TryHackMe</strong> notes, walkthroughs, and learning progress.</p>
+<p>Future posts here can include room notes, takeaways, and short writeups.</p>
+
+	
+	</div>
+  <a type="button" href="/2026/05/01/2026-05-01-welcome/#more" class="btn btn-default more">Read More</a>
 </div>
 
 		
@@ -460,7 +516,7 @@
 		
 			<li><a href="/categories/portswigger/">portswigger<span>1</span></a></li>
 		
-			<li><a href="/categories/security/">security<span>4</span></a></li>
+			<li><a href="/categories/security/">security<span>5</span></a></li>
 		
 			<li><a href="/categories/tryhackme/">tryhackme<span>2</span></a></li>
 		
@@ -475,35 +531,39 @@
 		<h4>Tag Cloud</h4>
 		<ul class="tag_box inline list-unstyled">		
 		
-			<li><a href="/tags/cloudgoat/">cloudgoat<span>2</span></a></li>
-		
-			<li><a href="/tags/hackthebox/">hackthebox<span>7</span></a></li>
-		
 			<li><a href="/tags/web-security/">web-security<span>2</span></a></li>
-		
-			<li><a href="/tags/labs/">labs<span>1</span></a></li>
-		
-			<li><a href="/tags/architecture/">architecture<span>1</span></a></li>
 		
 			<li><a href="/tags/hardware/">hardware<span>1</span></a></li>
 		
-			<li><a href="/tags/security/">security<span>6</span></a></li>
-		
 			<li><a href="/tags/reversing/">reversing<span>1</span></a></li>
+		
+			<li><a href="/tags/dns/">dns<span>1</span></a></li>
 		
 			<li><a href="/tags/portswigger/">portswigger<span>1</span></a></li>
 		
-			<li><a href="/tags/tryhackme/">tryhackme<span>2</span></a></li>
-		
 			<li><a href="/tags/walkthrough/">walkthrough<span>1</span></a></li>
+		
+			<li><a href="/tags/phishing/">phishing<span>1</span></a></li>
+		
+			<li><a href="/tags/security/">security<span>6</span></a></li>
+		
+			<li><a href="/tags/email/">email<span>1</span></a></li>
 		
 			<li><a href="/tags/guide/">guide<span>3</span></a></li>
 		
-			<li><a href="/tags/aws/">aws<span>2</span></a></li>
+			<li><a href="/tags/tryhackme/">tryhackme<span>2</span></a></li>
 		
 			<li><a href="/tags/opsec/">opsec<span>2</span></a></li>
 		
-			<li><a href="/tags/dns/">dns<span>1</span></a></li>
+			<li><a href="/tags/architecture/">architecture<span>1</span></a></li>
+		
+			<li><a href="/tags/aws/">aws<span>2</span></a></li>
+		
+			<li><a href="/tags/hackthebox/">hackthebox<span>7</span></a></li>
+		
+			<li><a href="/tags/labs/">labs<span>1</span></a></li>
+		
+			<li><a href="/tags/cloudgoat/">cloudgoat<span>2</span></a></li>
 		
 		 
 		</ul>
@@ -515,6 +575,10 @@
 <div class="widget">
   <h4>Recent Posts</h4>
   <ul class="entry list-unstyled">
+    
+      <li>
+        <a href="/2026/10/03/2026-10-03-email-security/"  title="How email authentication and encryption work: SMTP, SPF, DKIM, DMARC, ARC, MTA-STS, DANE, S/MIME and PGP, including header analysis and practical commands." ><i class="fa fa-file-o"></i>Email Security: SPF, DKIM, ...</a>
+      </li>
     
       <li>
         <a href="/2026/09/18/2026-09-18-ec2-ssrf/"  title="Writeup for CloudGoat&#39;s EC2 SSRF scenario." ><i class="fa fa-file-o"></i>CloudGoat - EC2 SSRF</a>
@@ -530,10 +594,6 @@
     
       <li>
         <a href="/2026/08/30/2026-08-30-redteam-opsec/"  title="Getting through recon clean is only step one. Most engagements don&#39;t get burned during scanning: they get burned later, during infra, C2, DNS, or just sloppy operator habits. In this post i try to cover some important steps to cover the next step of the previous started redteam opsec &#39;series&#39;." ><i class="fa fa-file-o"></i>General opsec for RedTeams</a>
-      </li>
-    
-      <li>
-        <a href="/2026/08/13/2026-08-13-de-morgan/"  title="Turing Comeplete - De Morgan&#39;s law" ><i class="fa fa-file-o"></i>De Morgan&#39;s law</a>
       </li>
     
   </ul>
