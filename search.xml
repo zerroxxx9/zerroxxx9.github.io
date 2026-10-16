@@ -4,6 +4,37 @@
   
     
     <entry>
+      <title>Checking Your iPhone for Spyware with MVT</title>
+      <link href="/2026/10/16/2026-10-16-spyware-detection/"/>
+      <url>/2026/10/16/2026-10-16-spyware-detection/</url>
+      
+        <content type="html"><![CDATA[<h2 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h2><p>Due to the recent incident with AdFection and browser ads delivering Candiru spyware, I wanted to share this. This post is a step-by-step guide to check whether your phone was infected with spyware:</p><ol><li>Install the needed tools</li><li>Back up your iPhone</li><li>Scan the backup using MVT</li></ol><h2 id="Install-the-tools"><a href="#Install-the-tools" class="headerlink" title="Install the tools"></a>Install the tools</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install libimobiledevice-utils usbmuxd</span><br><span class="line"><span class="built_in">sudo</span> systemctl <span class="built_in">enable</span> --now usbmuxd</span><br></pre></td></tr></table></figure><h2 id="Back-up-the-iPhone"><a href="#Back-up-the-iPhone" class="headerlink" title="Back up the iPhone"></a>Back up the iPhone</h2><p>Unlock your iPhone, then pair it and create an encrypted backup:</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">idevicepair pair</span><br><span class="line">idevicebackup2 -i encryption on</span><br><span class="line"><span class="built_in">mkdir</span> ~/iphone-backup</span><br><span class="line">idevicebackup2 backup --full ~/iphone-backup</span><br></pre></td></tr></table></figure><h2 id="Scan-the-backup-with-MVT"><a href="#Scan-the-backup-with-MVT" class="headerlink" title="Scan the backup with MVT"></a>Scan the backup with MVT</h2><p>Decrypt the backup, then run the checks:</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mvt-ios decrypt-backup -d ~/iphone-decrypted ~/iphone-backup</span><br><span class="line">mvt-ios check-backup --output ~/mvt-results ~/iphone-decrypted</span><br></pre></td></tr></table></figure><p>If you have additional IOCs, you can run them like this:</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvt-ios check-iocs --iocs candiru.stix2 ~/mvt-results</span><br></pre></td></tr></table></figure><p>The results are saved in <code>~/mvt-results</code>.</p><h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul><li><a href="https://docs.mvt.re/en/latest/">Mobile Verification Toolkit (MVT) documentation</a></li><li><a href="https://github.com/mvt-project/mvt">MVT source code on GitHub</a></li><li><a href="https://github.com/AmnestyTech/investigations">Amnesty International Security Lab: investigations and IOCs</a></li><li><a href="https://www.amnesty.org/">Amnesty International</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> security </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> spyware </tag>
+            
+            <tag> ios </tag>
+            
+            <tag> mvt </tag>
+            
+            <tag> forensics </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Email Security: SPF, DKIM, DMARC &amp; Co.</title>
       <link href="/2026/10/03/2026-10-03-email-security/"/>
       <url>/2026/10/03/2026-10-03-email-security/</url>

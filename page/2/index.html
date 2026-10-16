@@ -138,6 +138,45 @@
 <div class="row">
 	<div class="col-md-8">
 		<h3 class="title">
+			<a href="/2026/06/27/2026-06-27-abusing-system-services/" title="A short showcase of user-level persistence through systemd user services on a Linux host.">Persistence by Abusing systemd Services</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-06-27  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="Persistence-by-Abusing-systemd-Services"><a href="#Persistence-by-Abusing-systemd-Services" class="headerlink" title="Persistence by Abusing systemd Services"></a>Persistence by Abusing systemd Services</h1><p>User-level systemd services live in:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">~/.config/systemd/user/</span><br></pre></td></tr></table></figure>
+
+<p>If the directory does not exist yet, create it first:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p ~/.config/systemd/user</span><br></pre></td></tr></table></figure>
+
+<p>Create a user service file:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi ~/.config/systemd/user/persistence.service</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[Unit]</span></span><br><span class="line"><span class="attr">Description</span>=Persistence service</span><br><span class="line"></span><br><span class="line"><span class="section">[Service]</span></span><br><span class="line"><span class="attr">Type</span>=<span class="literal">on</span>eshot</span><br><span class="line"><span class="attr">ExecStart</span>=/bin/bash -c <span class="string">&#x27;echo pwned&#x27;</span></span><br><span class="line"><span class="attr">RemainAfterExit</span>=<span class="literal">yes</span></span><br><span class="line"></span><br><span class="line"><span class="section">[Install]</span></span><br><span class="line"><span class="attr">WantedBy</span>=default.target</span><br></pre></td></tr></table></figure>
+
+<p>Reload the user systemd manager and enable the service:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl --user daemon-reload</span><br><span class="line">systemctl --user <span class="built_in">enable</span> persistence.service</span><br></pre></td></tr></table></figure>
+	
+	</div>
+  <a type="button" href="/2026/06/27/2026-06-27-abusing-system-services/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
 			<a href="/2026/06/04/2026-06-04-silentium/" title="Writeup for Silentium CTF.">Silentium - CTF Writeup</a>
 		</h3>
 		</div>
@@ -516,7 +555,7 @@
 		
 			<li><a href="/categories/portswigger/">portswigger<span>1</span></a></li>
 		
-			<li><a href="/categories/security/">security<span>5</span></a></li>
+			<li><a href="/categories/security/">security<span>6</span></a></li>
 		
 			<li><a href="/categories/tryhackme/">tryhackme<span>2</span></a></li>
 		
@@ -533,38 +572,46 @@
 		
 			<li><a href="/tags/web-security/">web-security<span>2</span></a></li>
 		
-			<li><a href="/tags/hardware/">hardware<span>1</span></a></li>
-		
-			<li><a href="/tags/reversing/">reversing<span>1</span></a></li>
-		
 			<li><a href="/tags/dns/">dns<span>1</span></a></li>
-		
-			<li><a href="/tags/portswigger/">portswigger<span>1</span></a></li>
-		
-			<li><a href="/tags/walkthrough/">walkthrough<span>1</span></a></li>
-		
-			<li><a href="/tags/phishing/">phishing<span>1</span></a></li>
-		
-			<li><a href="/tags/security/">security<span>6</span></a></li>
-		
-			<li><a href="/tags/email/">email<span>1</span></a></li>
-		
-			<li><a href="/tags/guide/">guide<span>3</span></a></li>
-		
-			<li><a href="/tags/tryhackme/">tryhackme<span>2</span></a></li>
-		
-			<li><a href="/tags/opsec/">opsec<span>2</span></a></li>
-		
-			<li><a href="/tags/architecture/">architecture<span>1</span></a></li>
 		
 			<li><a href="/tags/aws/">aws<span>2</span></a></li>
 		
-			<li><a href="/tags/hackthebox/">hackthebox<span>7</span></a></li>
-		
 			<li><a href="/tags/labs/">labs<span>1</span></a></li>
+		
+			<li><a href="/tags/portswigger/">portswigger<span>1</span></a></li>
+		
+			<li><a href="/tags/ios/">ios<span>1</span></a></li>
+		
+			<li><a href="/tags/phishing/">phishing<span>1</span></a></li>
+		
+			<li><a href="/tags/guide/">guide<span>3</span></a></li>
+		
+			<li><a href="/tags/hardware/">hardware<span>1</span></a></li>
+		
+			<li><a href="/tags/mvt/">mvt<span>1</span></a></li>
+		
+			<li><a href="/tags/email/">email<span>1</span></a></li>
+		
+			<li><a href="/tags/architecture/">architecture<span>1</span></a></li>
+		
+			<li><a href="/tags/reversing/">reversing<span>1</span></a></li>
+		
+			<li><a href="/tags/security/">security<span>6</span></a></li>
+		
+			<li><a href="/tags/forensics/">forensics<span>1</span></a></li>
+		
+			<li><a href="/tags/walkthrough/">walkthrough<span>1</span></a></li>
+		
+			<li><a href="/tags/opsec/">opsec<span>2</span></a></li>
+		
+			<li><a href="/tags/tryhackme/">tryhackme<span>2</span></a></li>
+		
+			<li><a href="/tags/spyware/">spyware<span>1</span></a></li>
 		
 			<li><a href="/tags/cloudgoat/">cloudgoat<span>2</span></a></li>
 		
+		
+		   <li><a href="/tags">...<span>21</span></a></li>
 		 
 		</ul>
 	</div>
@@ -575,6 +622,10 @@
 <div class="widget">
   <h4>Recent Posts</h4>
   <ul class="entry list-unstyled">
+    
+      <li>
+        <a href="/2026/10/16/2026-10-16-spyware-detection/"  title="Step-by-step guide to back up an iPhone from Linux and scan the backup for spyware such as Candiru using the Mobile Verification Toolkit (MVT)." ><i class="fa fa-file-o"></i>Checking Your iPhone for Sp...</a>
+      </li>
     
       <li>
         <a href="/2026/10/03/2026-10-03-email-security/"  title="How email authentication and encryption work: SMTP, SPF, DKIM, DMARC, ARC, MTA-STS, DANE, S/MIME and PGP, including header analysis and practical commands." ><i class="fa fa-file-o"></i>Email Security: SPF, DKIM, ...</a>
@@ -590,10 +641,6 @@
     
       <li>
         <a href="/2026/09/08/2026-09-08-orion-htb/"  title="Writeup for Orion CTF." ><i class="fa fa-file-o"></i>Orion - CTF Writeup</a>
-      </li>
-    
-      <li>
-        <a href="/2026/08/30/2026-08-30-redteam-opsec/"  title="Getting through recon clean is only step one. Most engagements don&#39;t get burned during scanning: they get burned later, during infra, C2, DNS, or just sloppy operator habits. In this post i try to cover some important steps to cover the next step of the previous started redteam opsec &#39;series&#39;." ><i class="fa fa-file-o"></i>General opsec for RedTeams</a>
       </li>
     
   </ul>
