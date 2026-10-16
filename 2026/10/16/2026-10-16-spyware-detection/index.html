@@ -136,24 +136,31 @@
 		 </div> <!-- alert -->
 	  		
 
-	  <h2 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h2><p>Due to the recent incident with AdFection and browser ads delivering Candiru spyware, I wanted to share this. This post is a step-by-step guide to check whether your phone was infected with spyware:</p>
+	  <h2 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h2><p>Following the recent incident in which browser ads from AdFection delivered Candiru spyware, I’m sharing a short guide to checking whether your iPhone has been infected. The process has three steps:</p>
 <ol>
-<li>Install the needed tools</li>
+<li>Install the tools</li>
 <li>Back up your iPhone</li>
-<li>Scan the backup using MVT</li>
+<li>Scan the backup with MVT</li>
 </ol>
-<h2 id="Install-the-tools"><a href="#Install-the-tools" class="headerlink" title="Install the tools"></a>Install the tools</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install libimobiledevice-utils usbmuxd</span><br><span class="line"><span class="built_in">sudo</span> systemctl <span class="built_in">enable</span> --now usbmuxd</span><br></pre></td></tr></table></figure>
+<p>The commands below assume a Debian&#x2F;Ubuntu-based system. On other distributions, install the equivalent packages.</p>
+<h2 id="Install-the-tools"><a href="#Install-the-tools" class="headerlink" title="Install the tools"></a>Install the tools</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install libimobiledevice-utils usbmuxd pipx</span><br><span class="line"><span class="built_in">sudo</span> systemctl <span class="built_in">enable</span> --now usbmuxd</span><br><span class="line">pipx install mvt</span><br></pre></td></tr></table></figure>
 
-<h2 id="Back-up-the-iPhone"><a href="#Back-up-the-iPhone" class="headerlink" title="Back up the iPhone"></a>Back up the iPhone</h2><p>Unlock your iPhone, then pair it and create an encrypted backup:</p>
+<h2 id="Back-up-the-iPhone"><a href="#Back-up-the-iPhone" class="headerlink" title="Back up the iPhone"></a>Back up the iPhone</h2><p>Connect your iPhone to your computer and unlock it. Pair the two devices (tap <strong>Trust</strong> on the phone when prompted), then create an encrypted backup:</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">idevicepair pair</span><br><span class="line">idevicebackup2 -i encryption on</span><br><span class="line"><span class="built_in">mkdir</span> ~/iphone-backup</span><br><span class="line">idevicebackup2 backup --full ~/iphone-backup</span><br></pre></td></tr></table></figure>
 
-<h2 id="Scan-the-backup-with-MVT"><a href="#Scan-the-backup-with-MVT" class="headerlink" title="Scan the backup with MVT"></a>Scan the backup with MVT</h2><p>Decrypt the backup, then run the checks:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mvt-ios decrypt-backup -d ~/iphone-decrypted ~/iphone-backup</span><br><span class="line">mvt-ios check-backup --output ~/mvt-results ~/iphone-decrypted</span><br></pre></td></tr></table></figure>
+<p>The <code>-i</code> flag makes <code>idevicebackup2</code> ask for a backup password. Remember it, because you need it in the next step. The backup can be large and may take a while.</p>
+<h2 id="Scan-the-backup-with-MVT"><a href="#Scan-the-backup-with-MVT" class="headerlink" title="Scan the backup with MVT"></a>Scan the backup with MVT</h2><p>First, decrypt the backup using the password you just set:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvt-ios decrypt-backup -d ~/iphone-decrypted ~/iphone-backup</span><br></pre></td></tr></table></figure>
 
-<p>If you have additional IOCs, you can run them like this:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvt-ios check-iocs --iocs candiru.stix2 ~/mvt-results</span><br></pre></td></tr></table></figure>
+<p>MVT is only as good as its indicators of compromise (IOCs). Download the public indicators, then run the checks:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mvt-ios download-iocs</span><br><span class="line">mvt-ios check-backup --output ~/mvt-results ~/iphone-decrypted</span><br></pre></td></tr></table></figure>
 
-<p>The results are saved in <code>~/mvt-results</code>.</p>
+<p>If you have an IOC file from another source, such as the Amnesty International Security Lab’s <a target="_blank" rel="noopener" href="https://github.com/AmnestyTech/investigations"><code>candiru.stix2</code></a>, pass it explicitly:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvt-ios check-backup --iocs candiru.stix2 --output ~/mvt-results ~/iphone-decrypted</span><br></pre></td></tr></table></figure>
+
+<h2 id="Reading-the-results"><a href="#Reading-the-results" class="headerlink" title="Reading the results"></a>Reading the results</h2><p>MVT writes its findings to <code>~/mvt-results</code>. Files ending in <code>_detected.json</code> contain matches against known indicators, and <code>command.log</code> lists any warnings. If nothing was flagged, those files will be absent or empty.</p>
+<p>If MVT flags something, do not assume infection straight away, because false positives happen. Keep the results folder, avoid wiping the phone, and ask a digital security organization such as <a target="_blank" rel="noopener" href="https://securitylab.amnesty.org/">Amnesty’s Security Lab</a> or <a target="_blank" rel="noopener" href="https://www.accessnow.org/help/">Access Now’s Digital Security Helpline</a> to review it.</p>
+<h2 id="Limitations"><a href="#Limitations" class="headerlink" title="Limitations"></a>Limitations</h2><p>A clean result means that nothing <em>known</em> was found, not that your phone is definitely clean. A backup does not capture everything on the device, and a lot of iOS spyware leaves few traces. New campaigns may also not have public IOCs yet. Keep iOS up to date, and consider Lockdown Mode if you are at elevated risk.</p>
 <h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://docs.mvt.re/en/latest/">Mobile Verification Toolkit (MVT) documentation</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/mvt-project/mvt">MVT source code on GitHub</a></li>
