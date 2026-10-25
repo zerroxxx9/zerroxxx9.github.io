@@ -4,6 +4,33 @@
   
     
     <entry>
+      <title>Infrastructure: Phishing</title>
+      <link href="/2026/10/25/2026-10-25-infra-for-phishing/"/>
+      <url>/2026/10/25/2026-10-25-infra-for-phishing/</url>
+      
+        <content type="html"><![CDATA[<h2 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h2><p>Following my <a href="https://blog.zerrox-sec.com/2026/10/03/2026-10-03-email-security">recent post about email security</a> in the context of phishing: here is a guide on setting up phishing infrastructure using Gophish, nginx, Terraform, and Hetzner, a Germany-based hosting provider.</p><p>All the needed code is provided on <a href="https://github.com/zerroxxx9/RedTeam-Infrastructure">my GitHub</a>.</p><h2 id="Prerequisites"><a href="#Prerequisites" class="headerlink" title="Prerequisites"></a>Prerequisites</h2><ul><li>Generate an SSH keypair: <code>ssh-keygen -t ed25519</code></li><li>Create a Hetzner project: <code>console.hetzner.com/projects</code></li><li>Generate an API key: <code>console.hetzner.com/projects/&lt;ID&gt;/security</code></li><li>Grab your IP: <code>curl -4 ifconfig.me</code></li></ul><hr><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cp</span> terraform.tfvars.example terraform.tfvars  <span class="comment"># insert your values from above</span></span><br><span class="line">terraform init</span><br><span class="line">terraform apply</span><br><span class="line">ssh -o IdentitiesOnly=<span class="built_in">yes</span> -i ~/.ssh/id_ed25519 root@&lt;IP&gt;</span><br></pre></td></tr></table></figure><p>The server IP will be provided once <code>terraform apply</code> finishes.</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cloud-init status --<span class="built_in">wait</span></span><br><span class="line">systemctl status gophish nginx</span><br><span class="line">journalctl -u gophish | grep -i <span class="string">&quot;please login&quot;</span></span><br></pre></td></tr></table></figure><p><code>journalctl</code> will reveal the auto-generated credentials for the login.</p><p>Note: Gophish forces a password change on first login, so that initial password from <code>journalctl</code> is only good for the first sign-in.</p><hr><h2 id="On-your-machine"><a href="#On-your-machine" class="headerlink" title="On your machine"></a>On your machine</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh -o IdentitiesOnly=<span class="built_in">yes</span> -i ~/.ssh/id_ed25519 -L 3333:127.0.0.1:3333 root@&lt;IP&gt;</span><br></pre></td></tr></table></figure><p>Now you’re able to visit the Gophish UI from your own machine at <code>127.0.0.1:3333</code>.</p><h2 id="What’s-left-to-do"><a href="#What’s-left-to-do" class="headerlink" title="What’s left to do?"></a>What’s left to do?</h2><ul><li>Set up a domain + DNS and point it to your server IP</li><li>Provision TLS using Let’s Encrypt or anything else</li><li>Set up SPF&#x2F;DKIM&#x2F;DMARC on the sending domain, pointed at the Gophish sending profile</li><li>Create a campaign</li><li>(Optional, for red team engagements) Include Evilginx</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> security </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> phishing </tag>
+            
+            <tag> IaC </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Checking Your iPhone for Spyware with MVT</title>
       <link href="/2026/10/16/2026-10-16-spyware-detection/"/>
       <url>/2026/10/16/2026-10-16-spyware-detection/</url>
@@ -442,33 +469,6 @@
     
     
     <entry>
-      <title>Welcome to PortSwigger Notes</title>
-      <link href="/2026/05/01/2026-05-01-welcome-portswigger/"/>
-      <url>/2026/05/01/2026-05-01-welcome-portswigger/</url>
-      
-        <content type="html"><![CDATA[<p>This category is for my <strong>PortSwigger</strong> Academy notes, lab references, and web security learning.</p><p>Future posts here can include lab summaries, exploitation notes, and useful techniques.</p>]]></content>
-      
-      
-      <categories>
-          
-          <category> portswigger </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
-            <tag> portswigger </tag>
-            
-            <tag> web-security </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>Welcome to Hack The Box Notes</title>
       <link href="/2026/05/01/2026-05-01-welcome-hackthebox/"/>
       <url>/2026/05/01/2026-05-01-welcome-hackthebox/</url>
@@ -488,6 +488,33 @@
             <tag> hackthebox </tag>
             
             <tag> labs </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Welcome to PortSwigger Notes</title>
+      <link href="/2026/05/01/2026-05-01-welcome-portswigger/"/>
+      <url>/2026/05/01/2026-05-01-welcome-portswigger/</url>
+      
+        <content type="html"><![CDATA[<p>This category is for my <strong>PortSwigger</strong> Academy notes, lab references, and web security learning.</p><p>Future posts here can include lab summaries, exploitation notes, and useful techniques.</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> portswigger </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> portswigger </tag>
+            
+            <tag> web-security </tag>
             
         </tags>
       
