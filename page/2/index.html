@@ -137,6 +137,60 @@
 <div class="row">
 	<div class="col-md-8">
 		<h3 class="title">
+			<a href="/2026/07/16/2026-07-16-reversing/" title="A documentation of my early steps learning to reverse engineer">HackTheBox - Cyberpsychosis (Easy)</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-07-16  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<p>The challenge was simple on paper: disarm a Linux kernel module rootkit and recover hidden data. In practice, this was my first Hack The Box challenge, and until now I had mostly played with crackmes. Getting an IP address and port as part of a reversing challenge already threw me off for a moment.</p>
+<p>The provided file was <code>diamorphine.ko</code>. A <code>.ko</code> file is a Linux kernel object: it can be loaded with <code>insmod</code>, removed with <code>rmmod</code>, and listed with <code>lsmod</code> if the module is not hiding itself.</p>
+<p><code>file</code> identified it as:</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ELF 64-bit LSB relocatable, x86-64, with debug_info, not stripped</span><br></pre></td></tr></table></figure>
+
+<p>That last part mattered. Because the module was not stripped, Ghidra still showed useful function names instead of leaving me with anonymous blobs. <code>strings</code> produced too much noise to be helpful, so I moved into Ghidra and started from the symbol tree.</p>
+<p>The interesting functions were:</p>
+<ul>
+<li>diamorphine_init</li>
+<li>diamorphine_cleanup</li>
+<li>find_task</li>
+<li>get_syscall_table_bf</li>
+<li>give_root</li>
+<li>hacked_getdents</li>
+<li>hacked_getdents64</li>
+<li>hacked_kill</li>
+<li>is_invisible</li>
+<li>module_hide</li>
+<li>module_show</li>
+</ul>
+<p>Every kernel module has an initialization and cleanup path, which in this case were <code>diamorphine_init</code> and <code>diamorphine_cleanup</code>. The rest of the names were already a pretty good map of the rootkit:</p>
+<ul>
+<li><code>module_hide</code> and <code>module_show</code> remove or restore the module from the kernel’s module list, which is why <code>lsmod</code> may not show it.</li>
+<li><code>give_root</code> does exactly what the name suggests.</li>
+<li><code>get_syscall_table_bf</code> locates the syscall table by brute force.</li>
+<li><code>is_invisible</code> checks whether a process has been marked as hidden.</li>
+</ul>
+<p>From there, the two most important hooks were <code>hacked_kill</code> and <code>hacked_getdents64</code>.</p>
+	
+	</div>
+  <a type="button" href="/2026/07/16/2026-07-16-reversing/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
 			<a href="/2026/07/13/2026-07-13-dns-data-exfil/" title="A short showcase of how DNS can be abused as a data exfiltration channel.">Data Exfiltration by Abusing DNS</a>
 		</h3>
 		</div>
@@ -505,35 +559,6 @@
 </div>
 
 		
-			
-	
-	<!-- display as entry -->
-<div class="row">
-	<div class="col-md-8">
-		<h3 class="title">
-			<a href="/2026/05/01/2026-05-01-welcome/" title="A starter post for TryHackMe-related writeups and notes.">Welcome to TryHackMe Notes</a>
-		</h3>
-		</div>
-	<div class="col-md-4">
-		<div class="date">post @ 2026-05-01  </div>
-		</div>
-	</div>
-	
-
-
-			<div class="entry">
-  <div class="row">
-	
-	
-		<p>This category is for my <strong>TryHackMe</strong> notes, walkthroughs, and learning progress.</p>
-<p>Future posts here can include room notes, takeaways, and short writeups.</p>
-
-	
-	</div>
-  <a type="button" href="/2026/05/01/2026-05-01-welcome/#more" class="btn btn-default more">Read More</a>
-</div>
-
-		
 
 		</div>
 
@@ -549,7 +574,7 @@
 
         <a href="/" type="button" class="btn btn-default"><i class="fa fa-home"></i>Home</a>
  
-          <a type="button" class="btn btn-default disabled">Next<i class="fa fa-arrow-circle-o-right"></i></a>
+       <a href="/page/3/" type="button" class="btn btn-default ">Next<i class="fa fa-arrow-circle-o-right"></i></a>     
         
 
   
@@ -589,7 +614,7 @@
 		
 			<li><a href="/categories/portswigger/">portswigger<span>1</span></a></li>
 		
-			<li><a href="/categories/security/">security<span>7</span></a></li>
+			<li><a href="/categories/security/">security<span>8</span></a></li>
 		
 			<li><a href="/categories/tryhackme/">tryhackme<span>2</span></a></li>
 		
@@ -604,48 +629,48 @@
 		<h4>Tag Cloud</h4>
 		<ul class="tag_box inline list-unstyled">		
 		
-			<li><a href="/tags/ios/">ios<span>1</span></a></li>
+			<li><a href="/tags/hackthebox/">hackthebox<span>7</span></a></li>
 		
-			<li><a href="/tags/guide/">guide<span>3</span></a></li>
-		
-			<li><a href="/tags/forensics/">forensics<span>1</span></a></li>
-		
-			<li><a href="/tags/walkthrough/">walkthrough<span>1</span></a></li>
-		
-			<li><a href="/tags/spyware/">spyware<span>1</span></a></li>
+			<li><a href="/tags/security/">security<span>7</span></a></li>
 		
 			<li><a href="/tags/email/">email<span>1</span></a></li>
 		
-			<li><a href="/tags/tryhackme/">tryhackme<span>2</span></a></li>
-		
-			<li><a href="/tags/security/">security<span>6</span></a></li>
-		
-			<li><a href="/tags/reversing/">reversing<span>1</span></a></li>
-		
-			<li><a href="/tags/web-security/">web-security<span>2</span></a></li>
-		
-			<li><a href="/tags/cloudgoat/">cloudgoat<span>2</span></a></li>
-		
-			<li><a href="/tags/aws/">aws<span>2</span></a></li>
-		
-			<li><a href="/tags/mvt/">mvt<span>1</span></a></li>
-		
-			<li><a href="/tags/architecture/">architecture<span>1</span></a></li>
-		
-			<li><a href="/tags/hackthebox/">hackthebox<span>7</span></a></li>
-		
-			<li><a href="/tags/dns/">dns<span>1</span></a></li>
-		
-			<li><a href="/tags/phishing/">phishing<span>2</span></a></li>
+			<li><a href="/tags/ios/">ios<span>1</span></a></li>
 		
 			<li><a href="/tags/portswigger/">portswigger<span>1</span></a></li>
 		
+			<li><a href="/tags/dns/">dns<span>1</span></a></li>
+		
+			<li><a href="/tags/web-security/">web-security<span>3</span></a></li>
+		
+			<li><a href="/tags/architecture/">architecture<span>1</span></a></li>
+		
+			<li><a href="/tags/spyware/">spyware<span>1</span></a></li>
+		
+			<li><a href="/tags/aws/">aws<span>2</span></a></li>
+		
+			<li><a href="/tags/labs/">labs<span>1</span></a></li>
+		
+			<li><a href="/tags/hardware/">hardware<span>1</span></a></li>
+		
+			<li><a href="/tags/cloudgoat/">cloudgoat<span>2</span></a></li>
+		
+			<li><a href="/tags/mvt/">mvt<span>1</span></a></li>
+		
+			<li><a href="/tags/reversing/">reversing<span>1</span></a></li>
+		
+			<li><a href="/tags/phishing/">phishing<span>2</span></a></li>
+		
 			<li><a href="/tags/IaC/">IaC<span>1</span></a></li>
+		
+			<li><a href="/tags/project/">project<span>1</span></a></li>
+		
+			<li><a href="/tags/walkthrough/">walkthrough<span>1</span></a></li>
 		
 			<li><a href="/tags/opsec/">opsec<span>2</span></a></li>
 		
 		
-		   <li><a href="/tags">...<span>22</span></a></li>
+		   <li><a href="/tags">...<span>23</span></a></li>
 		 
 		</ul>
 	</div>
@@ -656,6 +681,10 @@
 <div class="widget">
   <h4>Recent Posts</h4>
   <ul class="entry list-unstyled">
+    
+      <li>
+        <a href="/2026/10/27/2026-10-27-spot-the-sink/"  title="How I built a Wordle-style daily game for secure code review that grades fixes with hidden tests running in the player&#39;s browser, on Cloudflare&#39;s free plan." ><i class="fa fa-file-o"></i>Spot the Sink: A Daily Secu...</a>
+      </li>
     
       <li>
         <a href="/2026/10/25/2026-10-25-infra-for-phishing/"  title="Setting up Phishing Infrastructure using nginx, gophish and terraform" ><i class="fa fa-file-o"></i>Infrastructure: Phishing</a>
@@ -671,10 +700,6 @@
     
       <li>
         <a href="/2026/09/18/2026-09-18-ec2-ssrf/"  title="Writeup for CloudGoat&#39;s EC2 SSRF scenario." ><i class="fa fa-file-o"></i>CloudGoat - EC2 SSRF</a>
-      </li>
-    
-      <li>
-        <a href="/2026/09/18/2026-09-18-rce-web-app/"  title="Writeup for CloudGoat&#39;s RCE WebApp." ><i class="fa fa-file-o"></i>CloudGoat - RCE WebApp</a>
       </li>
     
   </ul>

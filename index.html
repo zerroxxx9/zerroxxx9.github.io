@@ -137,6 +137,43 @@
 <div class="row">
 	<div class="col-md-8">
 		<h3 class="title">
+			<a href="/2026/10/27/2026-10-27-spot-the-sink/" title="How I built a Wordle-style daily game for secure code review that grades fixes with hidden tests running in the player&#39;s browser, on Cloudflare&#39;s free plan.">Spot the Sink: A Daily Secure Code Review Game</a>
+		</h3>
+		</div>
+	<div class="col-md-4">
+		<div class="date">post @ 2026-10-27  </div>
+		</div>
+	</div>
+	
+
+
+			<div class="entry">
+  <div class="row">
+	
+	
+		<h1 id="Spot-the-Sink-A-Daily-Secure-Code-Review-Game"><a href="#Spot-the-Sink-A-Daily-Secure-Code-Review-Game" class="headerlink" title="Spot the Sink: A Daily Secure Code Review Game"></a>Spot the Sink: A Daily Secure Code Review Game</h1><p>Wordle works because it is small: one puzzle a day, the same for everyone, a result you can share in a single line. I wanted that for secure code review. So I built <strong>Spot the Sink</strong>.</p>
+<p>Every day there is one short, realistic snippet with a vulnerability in it. You do three things:</p>
+<ol>
+<li><strong>Spot</strong> the vulnerable line (or lines). Some of the lines are decoys that look dangerous and are not.</li>
+<li><strong>Name</strong> the weakness by picking the right CWE.</li>
+<li><strong>Fix</strong> the code. Hidden exploit and functional tests run against your fix, and you only get the points if the exploit is blocked <em>and</em> the feature still works.</li>
+</ol>
+<p>Then you get a score out of 100, a diff against the reference fix, a short writeup, and a share line like <code>Spot the Sink #12 ■▣□</code>.</p>
+<p><img src="/homepage.png" alt="Spot the Sink landing screen"></p>
+<h2 id="Why-a-game"><a href="#Why-a-game" class="headerlink" title="Why a game"></a>Why a game</h2><p>Most security training is either a slide deck or a full lab. Neither fits into a coffee break. Reading code and noticing the one line where untrusted input reaches something dangerous is a skill, and like most skills it improves with small, frequent repetitions. A daily puzzle, a streak counter and a result you can paste into a chat were the cheapest way I could think of to make that a habit.</p>
+<h2 id="The-three-stages"><a href="#The-three-stages" class="headerlink" title="The three stages"></a>The three stages</h2><p><strong>Spot.</strong> The snippet is shown as clickable rows. You tap or click the lines you think are vulnerable. Pick the primary line without piling on wrong ones and you get full marks; find some vulnerable line and you get half. Selecting everything does not work, because extra wrong lines cost points.</p>
+	
+	</div>
+  <a type="button" href="/2026/10/27/2026-10-27-spot-the-sink/#more" class="btn btn-default more">Read More</a>
+</div>
+
+		
+			
+	
+	<!-- display as entry -->
+<div class="row">
+	<div class="col-md-8">
+		<h3 class="title">
 			<a href="/2026/10/25/2026-10-25-infra-for-phishing/" title="Setting up Phishing Infrastructure using nginx, gophish and terraform">Infrastructure: Phishing</a>
 		</h3>
 		</div>
@@ -588,60 +625,6 @@
 </div>
 
 		
-			
-	
-	<!-- display as entry -->
-<div class="row">
-	<div class="col-md-8">
-		<h3 class="title">
-			<a href="/2026/07/16/2026-07-16-reversing/" title="A documentation of my early steps learning to reverse engineer">HackTheBox - Cyberpsychosis (Easy)</a>
-		</h3>
-		</div>
-	<div class="col-md-4">
-		<div class="date">post @ 2026-07-16  </div>
-		</div>
-	</div>
-	
-
-
-			<div class="entry">
-  <div class="row">
-	
-	
-		<p>The challenge was simple on paper: disarm a Linux kernel module rootkit and recover hidden data. In practice, this was my first Hack The Box challenge, and until now I had mostly played with crackmes. Getting an IP address and port as part of a reversing challenge already threw me off for a moment.</p>
-<p>The provided file was <code>diamorphine.ko</code>. A <code>.ko</code> file is a Linux kernel object: it can be loaded with <code>insmod</code>, removed with <code>rmmod</code>, and listed with <code>lsmod</code> if the module is not hiding itself.</p>
-<p><code>file</code> identified it as:</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ELF 64-bit LSB relocatable, x86-64, with debug_info, not stripped</span><br></pre></td></tr></table></figure>
-
-<p>That last part mattered. Because the module was not stripped, Ghidra still showed useful function names instead of leaving me with anonymous blobs. <code>strings</code> produced too much noise to be helpful, so I moved into Ghidra and started from the symbol tree.</p>
-<p>The interesting functions were:</p>
-<ul>
-<li>diamorphine_init</li>
-<li>diamorphine_cleanup</li>
-<li>find_task</li>
-<li>get_syscall_table_bf</li>
-<li>give_root</li>
-<li>hacked_getdents</li>
-<li>hacked_getdents64</li>
-<li>hacked_kill</li>
-<li>is_invisible</li>
-<li>module_hide</li>
-<li>module_show</li>
-</ul>
-<p>Every kernel module has an initialization and cleanup path, which in this case were <code>diamorphine_init</code> and <code>diamorphine_cleanup</code>. The rest of the names were already a pretty good map of the rootkit:</p>
-<ul>
-<li><code>module_hide</code> and <code>module_show</code> remove or restore the module from the kernel’s module list, which is why <code>lsmod</code> may not show it.</li>
-<li><code>give_root</code> does exactly what the name suggests.</li>
-<li><code>get_syscall_table_bf</code> locates the syscall table by brute force.</li>
-<li><code>is_invisible</code> checks whether a process has been marked as hidden.</li>
-</ul>
-<p>From there, the two most important hooks were <code>hacked_kill</code> and <code>hacked_getdents64</code>.</p>
-	
-	</div>
-  <a type="button" href="/2026/07/16/2026-07-16-reversing/#more" class="btn btn-default more">Read More</a>
-</div>
-
-		
 
 		</div>
 
@@ -697,7 +680,7 @@
 		
 			<li><a href="/categories/portswigger/">portswigger<span>1</span></a></li>
 		
-			<li><a href="/categories/security/">security<span>7</span></a></li>
+			<li><a href="/categories/security/">security<span>8</span></a></li>
 		
 			<li><a href="/categories/tryhackme/">tryhackme<span>2</span></a></li>
 		
@@ -712,48 +695,48 @@
 		<h4>Tag Cloud</h4>
 		<ul class="tag_box inline list-unstyled">		
 		
-			<li><a href="/tags/spyware/">spyware<span>1</span></a></li>
-		
-			<li><a href="/tags/dns/">dns<span>1</span></a></li>
+			<li><a href="/tags/hardware/">hardware<span>1</span></a></li>
 		
 			<li><a href="/tags/cloudgoat/">cloudgoat<span>2</span></a></li>
 		
-			<li><a href="/tags/forensics/">forensics<span>1</span></a></li>
+			<li><a href="/tags/tryhackme/">tryhackme<span>2</span></a></li>
 		
 			<li><a href="/tags/portswigger/">portswigger<span>1</span></a></li>
 		
-			<li><a href="/tags/tryhackme/">tryhackme<span>2</span></a></li>
-		
-			<li><a href="/tags/IaC/">IaC<span>1</span></a></li>
-		
-			<li><a href="/tags/security/">security<span>6</span></a></li>
-		
-			<li><a href="/tags/web-security/">web-security<span>2</span></a></li>
-		
-			<li><a href="/tags/aws/">aws<span>2</span></a></li>
-		
 			<li><a href="/tags/ios/">ios<span>1</span></a></li>
 		
-			<li><a href="/tags/architecture/">architecture<span>1</span></a></li>
-		
-			<li><a href="/tags/guide/">guide<span>3</span></a></li>
-		
-			<li><a href="/tags/hardware/">hardware<span>1</span></a></li>
-		
-			<li><a href="/tags/labs/">labs<span>1</span></a></li>
-		
-			<li><a href="/tags/email/">email<span>1</span></a></li>
+			<li><a href="/tags/hackthebox/">hackthebox<span>7</span></a></li>
 		
 			<li><a href="/tags/mvt/">mvt<span>1</span></a></li>
 		
-			<li><a href="/tags/walkthrough/">walkthrough<span>1</span></a></li>
+			<li><a href="/tags/web-security/">web-security<span>3</span></a></li>
 		
-			<li><a href="/tags/opsec/">opsec<span>2</span></a></li>
+			<li><a href="/tags/guide/">guide<span>3</span></a></li>
+		
+			<li><a href="/tags/dns/">dns<span>1</span></a></li>
+		
+			<li><a href="/tags/forensics/">forensics<span>1</span></a></li>
+		
+			<li><a href="/tags/spyware/">spyware<span>1</span></a></li>
+		
+			<li><a href="/tags/labs/">labs<span>1</span></a></li>
+		
+			<li><a href="/tags/reversing/">reversing<span>1</span></a></li>
+		
+			<li><a href="/tags/security/">security<span>7</span></a></li>
 		
 			<li><a href="/tags/phishing/">phishing<span>2</span></a></li>
 		
+			<li><a href="/tags/aws/">aws<span>2</span></a></li>
 		
-		   <li><a href="/tags">...<span>22</span></a></li>
+			<li><a href="/tags/architecture/">architecture<span>1</span></a></li>
+		
+			<li><a href="/tags/walkthrough/">walkthrough<span>1</span></a></li>
+		
+			<li><a href="/tags/project/">project<span>1</span></a></li>
+		
+		
+		   <li><a href="/tags">...<span>23</span></a></li>
 		 
 		</ul>
 	</div>
@@ -764,6 +747,10 @@
 <div class="widget">
   <h4>Recent Posts</h4>
   <ul class="entry list-unstyled">
+    
+      <li>
+        <a href="/2026/10/27/2026-10-27-spot-the-sink/"  title="How I built a Wordle-style daily game for secure code review that grades fixes with hidden tests running in the player&#39;s browser, on Cloudflare&#39;s free plan." ><i class="fa fa-file-o"></i>Spot the Sink: A Daily Secu...</a>
+      </li>
     
       <li>
         <a href="/2026/10/25/2026-10-25-infra-for-phishing/"  title="Setting up Phishing Infrastructure using nginx, gophish and terraform" ><i class="fa fa-file-o"></i>Infrastructure: Phishing</a>
@@ -779,10 +766,6 @@
     
       <li>
         <a href="/2026/09/18/2026-09-18-ec2-ssrf/"  title="Writeup for CloudGoat&#39;s EC2 SSRF scenario." ><i class="fa fa-file-o"></i>CloudGoat - EC2 SSRF</a>
-      </li>
-    
-      <li>
-        <a href="/2026/09/18/2026-09-18-rce-web-app/"  title="Writeup for CloudGoat&#39;s RCE WebApp." ><i class="fa fa-file-o"></i>CloudGoat - RCE WebApp</a>
       </li>
     
   </ul>
